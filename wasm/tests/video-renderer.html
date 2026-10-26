@@ -1,0 +1,50 @@
+<!doctype html><meta charset="utf-8"><title>Video renderer verification</title>
+<style>body{background:#181b22;color:white;font:18px sans-serif}canvas{width:384px;height:192px;image-rendering:pixelated}pre{white-space:pre-wrap}</style>
+<h1>Video renderer verification</h1><canvas id="result"></canvas><pre id="report">Running…</pre>
+<script src="/video-renderer.js"></script><script>
+try {
+ const source = document.createElement('canvas'); source.width=16;source.height=8;
+ const ctx=source.getContext('2d');ctx.fillStyle='#ff0000';ctx.fillRect(0,0,16,4);ctx.fillStyle='#0000ff';ctx.fillRect(0,4,16,4);
+ const canvas=document.getElementById('result');
+ if(location.search==='?fallback'){const native=canvas.getContext.bind(canvas);canvas.getContext=(type,...args)=>type==='webgl'?null:native(type,...args);}
+ const renderer=ChiakiVideo.create(canvas);canvas.width=16;canvas.height=8;
+ const frame=new VideoFrame(source,{timestamp:0});
+ const d={sx:0,sy:0,sw:16,sh:8};renderer.draw(frame,d,0);
+ const copy=document.createElement('canvas');copy.width=16;copy.height=8;const out=copy.getContext('2d');out.drawImage(canvas,0,0);
+ const top=out.getImageData(8,1,1,1).data,bottom=out.getImageData(8,6,1,1).data;
+ if(top[0]<240||top[2]>10||bottom[2]<240||bottom[0]>10)throw new Error('Orientation/color mismatch: '+top+' / '+bottom);
+ frame.close();
+ // Crop from a padded coded frame: a common decoder output layout.
+ const cropped=new VideoFrame(source,{timestamp:1,visibleRect:{x:4,y:2,width:8,height:4},displayWidth:8,displayHeight:4});
+ canvas.width=8;canvas.height=4;renderer.draw(cropped,{sx:4,sy:2,sw:8,sh:4},35);out.clearRect(0,0,16,8);out.drawImage(canvas,0,0);
+ const croppedTop=out.getImageData(4,0,1,1).data,croppedBottom=out.getImageData(4,3,1,1).data;
+ if(croppedTop[0]<220||croppedBottom[2]<220)throw new Error('Cropped frame mismatch: '+croppedTop+' / '+croppedBottom);
+ cropped.close();
+ for(let y=0;y<8;y++)for(let x=0;x<16;x++){ctx.fillStyle=`rgb(${x*16},${y*32},0)`;ctx.fillRect(x,y,1,1);}
+ const gradient=new VideoFrame(source,{timestamp:2,visibleRect:{x:4,y:2,width:8,height:4},displayWidth:8,displayHeight:4});
+ const dest=ChiakiVideo.frameDest(gradient);
+ if(dest.sx!==0||dest.sy!==0||dest.sw!==8||dest.sh!==4)throw new Error('Incorrect displayed-frame destination');
+ renderer.draw(gradient,dest,0);out.clearRect(0,0,16,8);out.drawImage(canvas,0,0);
+ const actual=out.getImageData(0,0,8,4).data;out.clearRect(0,0,16,8);out.drawImage(gradient,0,0);
+ const expected=out.getImageData(0,0,8,4).data;
+ if(actual.some((v,i)=>Math.abs(v-expected[i])>3))throw new Error('Padded gradient crop mismatch: '+actual.slice(0,8)+' / '+expected.slice(0,8));
+ gradient.close();
+ // A shallow edge must gain contrast without halos or a color shift on flat areas.
+ source.width=16;source.height=8;
+ for(let x=0;x<16;x++){const v=x<7?50:x===7?75:x===8?125:150;ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(x,0,1,8);}
+ canvas.width=16;canvas.height=8;const ramp=new VideoFrame(source,{timestamp:2});
+ renderer.draw(ramp,d,0);out.drawImage(canvas,0,0);const before=out.getImageData(7,4,2,1).data;
+ renderer.draw(ramp,d,100);out.drawImage(canvas,0,0);const after=out.getImageData(7,4,2,1).data;
+ if(renderer.sharp && after[4]-after[0]<=before[4]-before[0])throw new Error('Sharpening did not increase edge contrast');
+ ramp.close();
+ source.width=32;source.height=16;canvas.width=32;canvas.height=16;copy.width=32;copy.height=16;
+ for(let y=0;y<16;y++)for(let x=0;x<32;x++){const v=(x<16?100:200)+((x+y)%2?4:-4);ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(x,y,1,1);}
+ const noisy=new VideoFrame(source,{timestamp:3}), nd=ChiakiVideo.frameDest(noisy);
+ const variance=(pixels)=>{const values=[];for(let y=2;y<14;y++)for(let x=2;x<14;x++)values.push(pixels[(y*32+x)*4]);const mean=values.reduce((s,v)=>s+v,0)/values.length;return values.reduce((s,v)=>s+(v-mean)**2,0)/values.length;};
+ renderer.draw(noisy,nd,0,0);out.drawImage(canvas,0,0);const noisyPixels=out.getImageData(0,0,32,16).data;
+ renderer.draw(noisy,nd,10,45);out.drawImage(canvas,0,0);const cleanPixels=out.getImageData(0,0,32,16).data;
+ if(renderer.sharp && variance(cleanPixels)>=variance(noisyPixels)*.9)throw new Error('Fog noise variance did not decrease: '+variance(noisyPixels)+' -> '+variance(cleanPixels)+'; '+noisyPixels.slice(0,8)+' / '+cleanPixels.slice(0,8));
+ if(cleanPixels[(8*32+16)*4]-cleanPixels[(8*32+15)*4]<85)throw new Error('Noise reduction blurred a strong edge');
+ noisy.close();document.getElementById('report').textContent='PASS: '+(renderer.sharp?'GPU sharpening + edge-aware noise reduction':'2D fallback')+'; orientation, colors, exact crop, edge contrast and fog noise verified.';
+} catch(error){document.getElementById('report').textContent='FAIL: '+error.stack;}
+</script>

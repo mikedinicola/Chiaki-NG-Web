@@ -1080,6 +1080,22 @@ kbd {
 	overflow: hidden;
 	touch-action: none;
 }
+.controls-sidebar {
+	position: absolute; top: 0; right: 0; bottom: 0; width: min(340px, 86vw);
+	z-index: 12; padding: 20px; background: rgba(29, 32, 40, .97);
+	border-left: 1px solid #4d5664; box-shadow: -12px 0 35px #0006;
+	overflow-y: auto; touch-action: pan-y; pointer-events: auto;
+}
+.controls-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.controls-heading h2 { margin: 0; font-size: 20px; }
+.controls-heading button { border: 0; background: transparent; color: var(--material-accent); cursor: pointer; padding: 10px 0; }
+.controls-sidebar .hint { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.controls-bindings { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; font-size: 13px; }
+.controls-bindings dt, .controls-bindings dd { margin: 0; padding: 9px 0; border-bottom: 1px solid #ffffff15; }
+.controls-bindings dd { text-align: right; color: #a8daff; overflow-wrap: anywhere; }
+.ls-panel { border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 24px; }
+.ls-panel h3 { margin-top: 0; }
+.ls-launch { display: inline-block; color: var(--material-accent); padding: 10px 0; }
 .stream-bar .tb-brand { font-size: 18px; }
 .stream .stream-bar {
 	position: absolute;
@@ -1808,6 +1824,19 @@ html.electron-app #add-home-hint { display: none !important; }
 	flex-direction: column;
 }
 .add-card h3 { flex: 0 0 auto; }
+.setup-step { color: var(--material-accent) !important; font-size: 11px; font-weight: 700; letter-spacing: .12em; margin-bottom: 6px !important; }
+.setup-details { margin: 8px 0 18px; font-size: 13px; }
+.setup-details summary { color: var(--material-accent); cursor: pointer; padding: 6px 0; }
+.setup-details[open] summary { margin-bottom: 10px; }
+.setup-discovery { background: #353535; border: 1px solid #555; border-radius: 8px; padding: 12px; margin-bottom: 18px; }
+.setup-discovery .hint:empty { display: none; }
+.setup-discovery .hint { margin: 8px 0 0; }
+.setup-consoles { display: grid; gap: 6px; }
+.setup-consoles button { text-align: left; color: var(--text); border: 1px solid var(--border); background: #303030; border-radius: 6px; padding: 10px; cursor: pointer; overflow-wrap: anywhere; }
+.setup-consoles button:hover, .setup-consoles button:focus-visible { border-color: var(--material-accent); }
+.setup-instructions { border-left: 3px solid var(--material-accent); padding: 10px 14px; background: #353535; margin-bottom: 18px; }
+.setup-instructions p:last-child { margin-bottom: 0; }
+#reg-pin { font-size: 22px; letter-spacing: .2em; font-variant-numeric: tabular-nums; }
 .add-modal-body {
 	flex: 1 1 auto;
 	min-height: 0;

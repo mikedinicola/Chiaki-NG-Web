@@ -83,6 +83,7 @@
 				<button class="tb-btn tb-close" id="btn-stop" type="button" data-i18n-title="stream.stop" title="Stop">×</button>
 				<span class="tb-brand" data-i18n="brand">Chiaki-NG Web Edition</span>
 				<div class="tb-spacer"></div>
+				<button class="tb-btn" id="btn-controls" type="button" aria-controls="controls-sidebar" aria-expanded="false" data-i18n-title="controls.toggle" title="Controls (`)">⌨</button>
 				<button class="tb-btn tb-icon" id="btn-stream-share" type="button" data-i18n-title="share.menu" title="Share">
 					<img src="icons/share-24px.svg" alt="">
 				</button>
@@ -103,6 +104,14 @@
 				<div id="overlay" class="overlay hidden"></div>
 			</div>
 			<div id="vpad" class="vpad hidden" aria-hidden="true"></div>
+			<aside id="controls-sidebar" class="controls-sidebar hidden" aria-labelledby="controls-title">
+				<div class="controls-heading"><h2 id="controls-title" data-i18n="controls.title">Controls</h2><button id="controls-close" type="button" data-i18n="controls.close">Close (`)</button></div>
+				<p id="controls-mode" class="hint"></p>
+				<p id="controls-stream-stats" class="hint" data-i18n="quality.statsWaiting">Video statistics appear when frames arrive.</p>
+				<dl id="controls-bindings" class="controls-bindings"></dl>
+				<p class="hint" data-i18n="controls.tip">Press ` again to hide this panel. F8 releases the cursor. Change bindings in Settings → Keys.</p>
+				<div id="controls-ls-status" class="hint hidden" data-i18n="ls.status">Lossless Scaling mode is prepared. Activate LSFG in the external app; its active state cannot be read here.</div>
+			</aside>
 		</section>
 
 		<section class="settings hidden" id="settings-view">
@@ -236,7 +245,7 @@
 					</div>
 					<div class="form-row">
 						<label data-i18n="stream.bitrate">Bitrate (kbps):</label>
-						<input id="s-bitrate" type="number" value="15000" min="2000" max="15000">
+						<input id="s-bitrate" type="number" value="15000" min="2000" max="100000" step="1000">
 						<span class="def" data-i18n="stream.bitrateDef">(15000)</span>
 					</div>
 					<div class="form-row">
@@ -246,6 +255,20 @@
 							<option value="1" selected data-i18n="stream.h265Default">H265 (Default)</option>
 						</select>
 						<span class="def" data-i18n="stream.codecDef">(H265)</span>
+					</div>
+					<button type="button" id="quality-lan" class="ghost" data-i18n="quality.lan">High quality LAN preset</button>
+					<button type="button" id="quality-fog" class="ghost" data-i18n="quality.fog">Clean fog / dark scenes preset</button>
+					<p class="hint" data-i18n="quality.hint">1080p, 60 fps, H.265, 50,000 kbps and mild GPU sharpening. Restart the stream to apply bitrate changes.</p>
+					<div class="form-row"><label for="s-sharpen" data-i18n="quality.sharpen">Sharpening:</label><input id="s-sharpen" type="range" min="0" max="100" step="5" value="35"><output id="s-sharpen-val">35%</output></div>
+					<div class="form-row"><label for="s-denoise" data-i18n="quality.denoise">Noise reduction:</label><input id="s-denoise" type="range" min="0" max="100" step="5" value="0"><output id="s-denoise-val">0%</output></div>
+					<p class="hint" data-i18n="quality.fogHint">Fog preset: 80 Mbps H.265, 10% sharpening, 45% edge-aware spatial noise reduction. No temporal blending or extra frame buffering. Higher noise reduction can soften fine detail. Restart for bitrate changes; press ` for received video Mbps. The console uses variable bitrate and can send less than requested.</p>
+					<p class="hint" data-i18n="quality.limit">0 disables sharpening. Remote Play is limited to the source stream's detail; enlarging 1080p on a 1440p/4K screen cannot restore native resolution. Avoid stacking this with Lossless Scaling sharpening.</p>
+					<div class="ls-panel">
+						<h3 data-i18n="ls.title">Frame generation with Lossless Scaling</h3>
+						<label class="check-label"><input id="s-lossless-scaling" type="checkbox"> <span data-i18n="ls.mode">Prepare stream for external Lossless Scaling</span></label>
+						<p class="hint" data-i18n="ls.help">Keeps new streams windowed. Launch Lossless Scaling, select LSFG Fixed ×2 (60 → 120 displayed fps), then activate capture on the browser window using its configured hotkey. Start with scaling Off if you only want frame generation.</p>
+						<a class="ls-launch" href="steam://run/993090" data-i18n="ls.launch">Launch installed Lossless Scaling (Steam)</a>
+						<p class="hint" data-i18n="ls.limit">External Windows app required. Generated frames can improve visual smoothness but add GPU load, latency or artifacts. The console stream and input rate remain 60 fps; this switch does not start or confirm LSFG.</p>
 					</div>
 				</div>
 				<div class="tab-page hidden" data-page="audio">
@@ -273,6 +296,8 @@
 						<button type="button" class="ghost" id="btn-reset-keys" data-i18n="keys.reset">Reset All Keys</button>
 						<label class="check-label"><input id="s-keyboard" type="checkbox" checked> <span data-i18n="keys.keyboard">Keyboard as controller</span></label>
 					</div>
+					<label class="check-label"><input id="s-pc-controls" type="checkbox"> <span data-i18n="pc.toggle">PC keyboard + mouse controls</span></label>
+					<p class="hint" data-i18n="pc.hint">WASD move · mouse look · left/right click fire/aim · Space jump · Shift sprint · Ctrl/C crouch · R reload · E interact · F8 unlock cursor. Controller emulation: game dead zones and turn limits still apply. Your custom bindings return when disabled.</p>
 					<div class="keys-layout">
 						<div class="keys-table-wrap">
 							<table class="keymap-table">
@@ -311,6 +336,8 @@
 									</div>
 								</div>
 								<label class="check-label"><input id="s-mouse-invert" type="checkbox"> <span data-i18n="keys.mouseInvert">Invert Y axis</span></label>
+								<div class="mouse-field"><label for="s-mouse-deadzone" data-i18n="keys.mouseDeadzone">Game dead-zone compensation:</label><div class="range-row"><input id="s-mouse-deadzone" type="range" min="0" max="30" step="1" value="12"><output id="s-mouse-deadzone-val">12%</output></div></div>
+								<p class="hint" data-i18n="keys.mouseTuning">Use raw mouse capture. Match compensation to your game's right-stick dead zone; lower it if aiming jumps. Set the game's aim acceleration to minimum. Mouse stops within 24 ms; controller turn-speed limits still apply. PC mode: B = PS, N = Share.</p>
 								<p class="hint" data-i18n="keys.mouseHint">Click the video to lock the cursor in keyboard/mouse mode. The virtual pad keeps the cursor free. F8 toggles lock by default.</p>
 							</aside>
 						</div>
@@ -469,55 +496,74 @@
 		</form>
 	</div>
 
-	<div id="add-modal" class="modal hidden">
+	<div id="add-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="setup-title">
 		<div class="modal-card add-card">
-			<h3 data-i18n="add.title">Add Manual Host</h3>
+			<p class="setup-step" data-i18n="setup.stepOne">STEP 1 OF 2 · YOUR CONSOLE</p>
+			<h3 id="setup-title" data-i18n="add.title">Add a PlayStation</h3>
 			<div class="add-modal-body">
+			<p class="hint" data-i18n="setup.intro">Turn on your console and connect it to the same network as this PC. No pairing keys needed.</p>
+			<div class="setup-discovery">
+				<button type="button" class="ghost" id="setup-discover" data-i18n="setup.find">Find nearby consoles</button>
+				<p id="setup-discovery-status" class="hint" role="status" aria-live="polite"></p>
+				<div id="setup-consoles" class="setup-consoles"></div>
+			</div>
 			<label><span data-i18n="add.address">Address</span>
 				<div class="lookup-row">
 					<input id="add-host" data-i18n-placeholder="add.addressPh" placeholder="IPv4" autocomplete="off" spellcheck="false" inputmode="decimal">
 					<button type="button" class="ghost" id="add-portcheck" data-i18n="add.portcheck">Tester</button>
 				</div>
 			</label>
+			<details class="setup-details"><summary data-i18n="setup.addressHelp">Where do I find the address?</summary><p class="hint" id="setup-address-help"></p></details>
 			<p class="hint hidden" id="add-home-hint"></p>
 			<div id="add-portcheck-out" class="portcheck hidden"></div>
-			<label><span data-i18n="add.name">Name</span><input id="add-name" placeholder="Streetpea's PS5"></label>
+			<label><span data-i18n="add.name">Name (optional)</span><input id="add-name" data-i18n-placeholder="setup.namePh" placeholder="Living room PlayStation"></label>
 			<label><span data-i18n="add.console">Console</span>
 				<select id="add-ps5">
 					<option value="1">PS5</option>
 					<option value="0">PS4</option>
 				</select>
 			</label>
-			<label><span data-i18n="add.psn">PSN Account ID (base64)</span><input id="add-psn" data-i18n-placeholder="add.psnPh" placeholder="optional, PS5 regist" autocomplete="off"></label>
+			<details id="setup-import" class="setup-details"><summary data-i18n="setup.import">Already paired? Import existing keys</summary>
+			<p class="hint" data-i18n="setup.importHelp">Only use this if you saved keys from another Chiaki installation. Otherwise leave these empty and continue to PIN pairing.</p>
+			<label><span data-i18n="add.psn">PSN Account ID (base64)</span><input id="add-psn" data-i18n-placeholder="add.psnPh" placeholder="optional" autocomplete="off"></label>
 			<label><span data-i18n="add.regist">Regist Key</span><input id="add-regist" data-i18n-placeholder="add.registPh" placeholder="optional if already registered"></label>
 			<label><span data-i18n="add.morning">RP Key / Morning</span><input id="add-morning" data-i18n-placeholder="add.morningPh" placeholder="32 hex chars"></label>
+			</details>
+			<p id="setup-error" class="reg-error hidden" role="alert"></p>
 			</div>
 			<div class="modal-actions">
-				<button type="button" id="add-ok" class="primary" data-i18n="add.ok" disabled>Add</button>
+				<button type="button" id="add-ok" class="primary" disabled>Continue to pairing</button>
 				<button type="button" id="add-cancel" data-i18n="add.cancel">Cancel</button>
 			</div>
 		</div>
 	</div>
 
-	<div id="regist-modal" class="modal hidden">
+	<div id="regist-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pair-title">
 		<div class="modal-card">
-			<h3 data-i18n="regist.title">Register Console</h3>
-			<p data-i18n="regist.help">On the console: Settings → Remote Play → Add Device. Enter the PIN shown there.</p>
+			<p class="setup-step" data-i18n="setup.stepTwo">STEP 2 OF 2 · PAIR ONCE</p>
+			<h3 id="pair-title" data-i18n="regist.title">Pair your PlayStation</h3>
+			<div class="setup-instructions"><p id="setup-pair-help"></p><p class="hint" data-i18n="setup.sameNetwork">Keep the console on and use its local network address for first-time pairing.</p></div>
 			<label><span data-i18n="regist.host">Host</span><input id="reg-host" readonly></label>
 			<div id="psn-regist-fields">
-				<p class="hint" data-i18n="regist.psnHelp">PS5 requires your PSN Account ID, not your online ID. Look it up below or paste the base64 / numeric ID.</p>
+				<p class="hint" data-i18n="regist.psnHelp">Use the PSN username signed in on this console. We can find its account ID for you — no password needed.</p>
 				<label><span data-i18n="regist.psnUser">PSN username</span>
 					<div class="lookup-row">
 						<input id="reg-psn-user" data-i18n-placeholder="config.psnUserPh" placeholder="online ID" autocomplete="off">
 						<button type="button" class="ghost" id="reg-lookup" data-i18n="regist.lookup">Look up</button>
 					</div>
 				</label>
+				<p class="hint" data-i18n="setup.lookupPrivacy">Find account sends this public username to a third-party PSN lookup service.</p>
+				<p id="setup-account-status" class="hint" role="status" aria-live="polite"></p>
+				<details id="setup-account-manual" class="setup-details"><summary data-i18n="setup.manualId">Enter an account ID manually</summary>
 				<label><span data-i18n="regist.psn">PSN Account ID</span><input id="reg-psn" data-i18n-placeholder="config.psnPh" placeholder="required for PS5" autocomplete="off"></label>
+				<button type="button" id="setup-lookup-fallback" class="ghost" data-i18n="setup.lookupFallback">Open alternate lookup website</button>
+				</details>
 			</div>
 			<label><span data-i18n="regist.pin">PIN</span><input id="reg-pin" inputmode="numeric" maxlength="8" placeholder="00000000"></label>
 			<p id="reg-error" class="reg-error hidden" role="alert" aria-live="polite"></p>
 			<div class="modal-actions">
 				<button type="button" id="reg-ok" class="primary" data-i18n="regist.ok">Register</button>
+				<button type="button" id="setup-back" data-i18n="setup.back">Back</button>
 				<button type="button" id="reg-cancel" data-i18n="regist.cancel">Cancel</button>
 			</div>
 		</div>
@@ -643,6 +689,11 @@
 	<pre id="log" class="log" hidden></pre>
 
 	<script src="boot.js"></script>
+	<script src="runtime-checks.js"></script>
+	<script src="console-setup.js"></script>
+	<script src="username-lookup.js"></script>
+	<script src="pc-controls.js"></script>
+	<script src="video-renderer.js"></script>
 	<script src="app.js"></script>
 </body>
 </html>

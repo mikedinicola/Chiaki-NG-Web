@@ -323,6 +323,21 @@ static void *regist_thread_func(void *user)
 		socklen_t recv_addr_size;
 		recv_addr_size = sizeof(recv_addr);
 		err = regist_search(regist, addrinfos, (struct sockaddr *)&recv_addr, &recv_addr_size);
+#ifdef __EMSCRIPTEN__
+		/* A manually addressed console can accept registration over TCP even when
+		 * its UDP search response is unavailable. Keep the normal encrypted PIN
+		 * exchange; only fall back on a timeout, never cancellation or other errors. */
+		if(err == CHIAKI_ERR_TIMEOUT && !regist->info.broadcast
+				&& addrinfos && addrinfos->ai_family == AF_INET
+				&& addrinfos->ai_addrlen == sizeof(struct sockaddr_in))
+		{
+			memcpy(&recv_addr, addrinfos->ai_addr, addrinfos->ai_addrlen);
+			recv_addr_size = addrinfos->ai_addrlen;
+			set_port((struct sockaddr *)&recv_addr, htons(REGIST_PORT));
+			CHIAKI_LOGI(regist->log, "Regist direct TCP fallback after UDP search timeout");
+			err = CHIAKI_ERR_SUCCESS;
+		}
+#endif
 		if(err != CHIAKI_ERR_SUCCESS)
 		{
 			if(err == CHIAKI_ERR_CANCELED)

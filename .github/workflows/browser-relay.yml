@@ -1,0 +1,51 @@
+name: Browser Rust relay
+
+on:
+  push:
+    paths:
+      - 'wasm/proxy/**'
+      - 'wasm/relay-rust/**'
+      - 'wasm/www/runtime-checks.js'
+      - 'wasm/www/console-setup.js'
+      - 'wasm/www/username-lookup.js'
+      - 'wasm/www/pc-controls.js'
+      - 'wasm/www/video-renderer.js'
+      - 'wasm/www/app.js'
+      - 'wasm/www/index.html'
+      - 'wasm/www/i18n/**'
+      - '.github/workflows/browser-relay.yml'
+  pull_request:
+    paths:
+      - 'wasm/proxy/**'
+      - 'wasm/relay-rust/**'
+      - 'wasm/www/runtime-checks.js'
+      - 'wasm/www/console-setup.js'
+      - 'wasm/www/username-lookup.js'
+      - 'wasm/www/pc-controls.js'
+      - 'wasm/www/video-renderer.js'
+      - 'wasm/www/app.js'
+      - 'wasm/www/index.html'
+      - 'wasm/www/i18n/**'
+      - '.github/workflows/browser-relay.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  relay:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Rust checks
+        run: rustup component add rustfmt clippy
+      - run: cargo fmt --manifest-path wasm/relay-rust/Cargo.toml --check
+      - run: cargo clippy --locked --manifest-path wasm/relay-rust/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --locked --manifest-path wasm/relay-rust/Cargo.toml
+      - run: cargo build --release --locked --manifest-path wasm/relay-rust/Cargo.toml
+      - run: node --test wasm/proxy/runtime-checks.test.mjs wasm/proxy/rust-relay.test.mjs wasm/proxy/console-setup.test.mjs wasm/proxy/client-features.test.mjs

@@ -1,2 +1,6 @@
 /test/*.inl linguist-generated=true
 /lib/*.h linguist-language=C
+*.sh text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.lock text eol=lf

@@ -4,6 +4,34 @@
 
 # chiaki-ng - Web Edition
 
+## Browser fork: start here
+
+[Install, pair, quality tuning, controls and troubleshooting](docs/BROWSER_SETUP.md)
+is the complete setup guide for this fork. It includes Windows build/run steps,
+the Rust relay, console pairing, browser-safe keyboard shortcuts, mouse tuning,
+GPU sharpening/noise reduction, received-video statistics, and external Lossless
+Scaling setup. The streaming core remains C/WebAssembly; Node and Rust run on
+the PC that can reach the console.
+
+**New:** the Clean fog / dark scenes preset requests 1080p60 H.265 at 80 Mbps,
+with edge-aware spatial noise reduction and gentle sharpening. Press backtick
+(`) during streaming for bindings and live received video Mbps/fps/loss. Actual
+bitrate is controlled by the console and varies with the scene; this does not
+provide native 4K, lossless video or a 10-bit HDR decoder.
+
+### Rust relay migration
+
+This checkout adds a native Rust TCP/UDP relay while keeping the browser UI and
+Chiaki C/WebAssembly streaming core. Node still handles accounts, SQLite, static
+files, sharing, and home proxy agents. This is the first migration stage, not a
+complete Rust rewrite.
+
+After building the existing WASM core, run `scripts/run-web.ps1` on Windows or
+`sh scripts/run-web.sh` on Linux/macOS. These build and select the Rust relay.
+Use Node.js 24 or newer (the account store uses `node:sqlite`). See
+[`wasm/relay-rust/README.md`](wasm/relay-rust/README.md) for configuration,
+architecture, verification, and current limits.
+
 Open-source **PlayStation 4 / PlayStation 5 Remote Play** client. This tree is [chiaki-ng](https://streetpea.github.io/chiaki-ng/) plus a **browser** and **Electron** port: `chiaki-lib` runs as WebAssembly, POSIX TCP/UDP to the console goes through a **Node.js proxy**.
 
 **Live demo:** [https://chiaki.csphere.fr/](https://chiaki.csphere.fr/)
@@ -55,7 +83,7 @@ This project is not endorsed or certified by Sony Interactive Entertainment LLC.
 - CMake option `CHIAKI_ENABLE_WASM`: Qt GUI / CLI / tests off in the Emscripten cache only; a normal Qt build still uses a **separate** CMake directory (do not mix `emcmake` with the desktop tree).
 - POSIX `socket` / `bind` / `select` / … are wrapped in `wasm/src/` and forwarded to Node over one WebSocket (`/posix-net`).
 - Stream defaults in the web UI: **1080p**, **60 fps**, **15000 kbps**, H.265.
-- Manual console add: IPv4 only, TCP **9295** checked first; PSN Account ID lookup via [psntools](https://www.psntools.com/).
+- Guided console setup: nearby discovery or IPv4 address, PSN username lookup, then PIN pairing. Existing keys can be imported under an advanced option.
 - No PSN holepunch / Remote Play over PSN in the WASM build (LAN or public IPv4 + NAT).
 
 French write-up: [`wasm/README_FR.md`](wasm/README_FR.md). English: [`wasm/README.md`](wasm/README.md).
@@ -64,7 +92,11 @@ French write-up: [`wasm/README_FR.md`](wasm/README_FR.md). English: [`wasm/READM
 
 ## How the web version works
 
-The browser cannot open POSIX sockets. The page loads the UI and `chiaki.wasm`. Node serves the files with **COOP/COEP** (required for `SharedArrayBuffer` / pthreads) and relays every socket call to the PS4/PS5.
+The browser cannot open POSIX sockets. The page loads the UI and `chiaki.wasm`.
+Node serves the files with **COOP/COEP** (required for `SharedArrayBuffer` /
+pthreads). With `CHIAKI_RELAY_BACKEND=rust`, the direct console TCP/UDP calls go
+through the authenticated Rust sidecar. Node remains available as a legacy
+backend and handles approved home-agent routing in either mode.
 
 <p align="center">
   <img src="Res/architecture.svg" alt="Browser or Electron → Node proxy → PS4/PS5" width="720">
@@ -87,7 +119,7 @@ Outside `localhost`, WASM pthreads need **HTTPS**.
 
 | Port | Proto | Role |
 |---|---|---|
-| **9295** | TCP | Remote Play session (tested before adding a host) |
+| **9295** | TCP | Remote Play session (optional connection test in setup) |
 | **9296** / **9297** | UDP | Video / audio stream |
 | **987** | UDP | PS4 discovery (LAN) |
 | **9302** | UDP | PS5 discovery (LAN) |
@@ -122,7 +154,7 @@ Always from the **repository root**.
 git submodule update --init --recursive
 ```
 
-Install once: [Emscripten](https://emscripten.org/docs/getting_started/downloads.html), CMake, Ninja, Python 3, Node.js ≥ 18.
+Install once: [Emscripten](https://emscripten.org/docs/getting_started/downloads.html), CMake, Ninja, Python 3, Node.js ≥ 24.
 
 `.\scripts\build-wasm.ps1` downloads **protoc 3.9.1** into `tools/protoc/` if missing, and creates `tools/wasm-python` (protobuf **4.25.3**) so nanopb works with Python 3.13.
 

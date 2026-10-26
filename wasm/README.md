@@ -53,13 +53,78 @@ Outside `localhost`, WASM pthreads require **HTTPS**.
 | **987** | UDP | PS4 discovery (LAN) |
 | **9302** | UDP | PS5 discovery (LAN) |
 
-Without **TCP 9295** open through to the console, manual add is rejected. On LAN, discovery + 9295 is often enough. On WAN, forward **9295 TCP** (and in practice the stream UDP ports) to the PS4/PS5.
+Console setup now guides you through choosing a nearby console (or entering its IPv4), finding your PSN account ID, and entering the 8-digit pairing code. The connection test is optional; existing keys are under **Already paired? Import existing keys**. The console is saved after successful pairing or a valid key import. TCP **9295** is still required for a Remote Play session. First-time PIN pairing should use the console's LAN address.
 
 Electron only exposes the proxy on `127.0.0.1` (port **18780** by default): no Internet-facing port to open for the exe itself. The console must still be reachable (LAN or 9295).
 
 ---
 
 ## Optimizations and additions
+
+### Automatic account lookup and PC controls
+
+In console pairing, a valid PSN username starts an account-ID lookup after a
+one-second typing pause. Requests are spaced at least 3.1 seconds apart, obsolete
+requests are cancelled, and successful results are cached for five minutes in
+the page session. Manual account ID entry cancels automatic requests. PSNTools
+remains an external manual fallback because its checker API requires browser
+verification/authentication; the existing automatic lookup provider can also be
+unavailable. A failed lookup does not block manual pairing.
+
+**Settings → Keys → PC keyboard + mouse controls** temporarily overlays a PC
+preset: WASD movement, mouse look, left/right click fire/aim, Space jump, Shift
+sprint, Ctrl/C crouch, R reload, E interact, and P for Options/pause. Click the
+video to capture input; F8 releases the cursor. **B** opens PS and **N** opens
+Share, avoiding browser function-key conflicts. Raw mouse input is requested when
+supported. Mouse motion now uses a 16 ms velocity window instead of accumulating
+stick deflection, with a 24 ms idle cutoff and radial clamping. **Game dead-zone
+compensation** defaults to 12%; match it to the game's right-stick dead zone and
+reduce it if slow aiming jumps. Sensitivity remains adjustable. The game still
+receives controller inputs, so its stick dead zones, turn limits, and button
+layout apply. Disable the preset to recover existing custom bindings.
+
+### Higher stream quality
+
+**Settings → Stream → High quality LAN preset** selects 1080p, 60 fps, H.265,
+hardware decoding, 50,000 kbps, and 35% sharpening. The old 15,000 kbps cap is removed;
+manual bitrates are bounded to 2,000–100,000 kbps. The default remains 15,000 kbps.
+Use Ethernet or strong 5/6 GHz Wi-Fi, and lower the bitrate if the network drops
+frames. Settings apply to a new or restarted stream.
+
+The WebGL renderer applies adjustable, local-range-clamped sharpening without
+CPU pixel readback. Set sharpening to 0 to disable it; browsers without WebGL
+fall back to the original 2D rendering path. Source frames stay at their decoded
+resolution: sharpening cannot recover native 1440p/4K detail from 1080p. Avoid
+stacking this with sharpening in Lossless Scaling. Renderer checks (orientation,
+cropping, color and edge contrast) are in `wasm/tests/video-renderer.html`; serve
+that file as `/` and `wasm/www/video-renderer.js` as `/video-renderer.js` locally.
+
+For noisy fog, use **Clean fog / dark scenes**: 80 Mbps H.265, 10% sharpening,
+45% edge-aware spatial noise reduction. Sharpening now gates out weak texture
+contrast to avoid re-amplifying grain. Denoising stores no earlier frame; high
+strengths soften fine detail. Press backtick during a stream for requested vs
+received video Mbps, decoded fps, frame size and unrecovered loss. The console's
+variable-rate encoder can send less than the requested amount. The received
+readout counts encoded video payload, not network overhead or an encoder target.
+
+Run `node scripts/check-renderer.mjs` from the repository root for the GPU and
+2D fallback pixel tests. See the [complete setup and tuning guide](../docs/BROWSER_SETUP.md).
+
+### Controls sidebar and external frame generation
+
+During a stream, press backtick (`) to toggle the right-hand controls sidebar.
+The keyboard toolbar button opens the same panel. It shows current bindings,
+including the PC preset when enabled, and ignores repeated keydown events and
+text-field input.
+
+**Settings → Stream → Prepare stream for external Lossless Scaling** keeps new
+streams windowed and offers a Steam launch link for the installed Windows app.
+In Lossless Scaling, select LSFG Fixed ×2 for a 60 fps base stream on a 120 Hz
+display, then activate capture on the browser window with its configured hotkey.
+Scaling can stay Off when only frame generation is wanted. Generated frames
+require GPU headroom and can introduce latency or artifacts. This is external
+capture preparation, not a bundled LSFG engine: the browser cannot start or
+verify LSFG, and console stream/input rates remain unchanged.
 
 ### `.env` file (server and Electron)
 

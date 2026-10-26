@@ -69,9 +69,25 @@ add_custom_command(TARGET chiaki-wasm POST_BUILD
 		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/env.mjs"
 		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/store.mjs"
 		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/share.mjs"
+		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/rust-relay.mjs"
 		"${CMAKE_CURRENT_BINARY_DIR}"
 	COMMAND "${CMAKE_COMMAND}" -E copy_directory
 		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/certs"
 		"${CMAKE_CURRENT_BINARY_DIR}/certs")
 
 message(STATUS "Chiaki WASM output directory: ${CMAKE_CURRENT_BINARY_DIR}")
+
+# Explicit regression target; kept out of the shipping browser bundle.
+if(CHIAKI_LIB_ENABLE_MBEDTLS AND TARGET mbedcrypto)
+	add_executable(chiaki-wasm-crypto-test EXCLUDE_FROM_ALL
+		tests/rpcrypt.c "${PROJECT_SOURCE_DIR}/lib/src/rpcrypt.c")
+	target_include_directories(chiaki-wasm-crypto-test PRIVATE
+		"${PROJECT_SOURCE_DIR}/lib/include" "${PROJECT_BINARY_DIR}/lib/include")
+	target_compile_definitions(chiaki-wasm-crypto-test PRIVATE CHIAKI_LIB_ENABLE_MBEDTLS)
+	target_compile_options(chiaki-wasm-crypto-test PRIVATE -pthread -fsanitize=address -O1 -g -UNDEBUG)
+	target_link_libraries(chiaki-wasm-crypto-test PRIVATE mbedcrypto)
+	target_link_options(chiaki-wasm-crypto-test PRIVATE -pthread -fsanitize=address
+		"SHELL:-sENVIRONMENT=node" "SHELL:-sEXIT_RUNTIME=1"
+		"SHELL:-Wl,--wrap=mbedtls_md_hmac_finish")
+	set_target_properties(chiaki-wasm-crypto-test PROPERTIES OUTPUT_NAME rpcrypt-test SUFFIX ".cjs")
+endif()

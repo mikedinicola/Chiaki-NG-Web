@@ -14,9 +14,11 @@ import zlib from "node:zlib";
 import { loadEnv } from "./env.mjs";
 import { openStore } from "./store.mjs";
 import { createShareHub } from "./share.mjs";
+import { startRustRelay } from "./rust-relay.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cfg = loadEnv();
+let rustRelay = null;
 const store = openStore(cfg);
 const PORT = cfg.port;
 const ROOT = process.env.CHIAKI_WASM_ROOT || (
@@ -616,16 +618,20 @@ function lookupPsnAccountId(username) {
 		"User-Agent": "Mozilla/5.0 Chiaki-NG-WASM"
 	};
 	const get = (url, redirects) => new Promise((resolve, reject) => {
-		https.get(url, { headers }, (r) => {
+		const request = https.get(url, { headers }, (r) => {
 			if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location && redirects > 0) {
 				r.resume();
 				resolve(get(new URL(r.headers.location, url).href, redirects - 1));
 				return;
 			}
 			let data = "";
-			r.on("data", (c) => { data += c; });
+			r.on("data", (c) => {
+				data += c;
+				if (data.length > 65536) request.destroy(new Error("lookup response too large"));
+			});
 			r.on("end", () => resolve({ status: r.statusCode || 500, data, type: r.headers["content-type"] || "" }));
 		}).on("error", reject);
+		request.setTimeout(8000, () => request.destroy(new Error("lookup service timed out")));
 	});
 	return get(`https://psn.flipscreen.games/search.php?username=${encodeURIComponent(username)}`, 5).then(({ status, data, type }) => {
 		const trimmed = String(data || "").trim();
@@ -1488,7 +1494,7 @@ function sameOrigin(req) {
 }
 
 function attachUpgrade(server) {
-	server.on("upgrade", (req, socket) => {
+	server.on("upgrade", (req, socket, head) => {
 		if (!sameOrigin(req)) {
 			socket.destroy();
 			return;
@@ -1524,6 +1530,10 @@ function attachUpgrade(server) {
 		const user = currentUser(req);
 		if (user && !isElectronReq(req) && homeAgents.pipePosix(user, socket))
 			return;
+		if (rustRelay) {
+			rustRelay.attach(socket, head);
+			return;
+		}
 		let acc = Buffer.alloc(0);
 		const emit = (payload) => {
 			try { socket.write(encodeWsFrame(payload)); } catch {}
@@ -1585,6 +1595,9 @@ function listenOnce(server, port, host) {
 
 export async function startServers() {
 	if (started) return started;
+	const backend = process.env.CHIAKI_RELAY_BACKEND || "node";
+	if (!["node", "rust"].includes(backend)) throw new Error("CHIAKI_RELAY_BACKEND must be node or rust");
+	if (backend === "rust") rustRelay = await startRustRelay({ allowWan: cfg.relayAllowWan });
 	const bindHost = process.env.CHIAKI_WASM_BIND || "127.0.0.1";
 	const lanHttps = envFlag("CHIAKI_WASM_LAN_HTTPS", true);
 	let wantPort = Number(process.env.CHIAKI_WASM_PORT || PORT || 8080);
@@ -1598,6 +1611,8 @@ export async function startServers() {
 			console.warn(`Port ${wantPort} occupé, repli sur un port libre.`);
 			addr = await listenOnce(httpServer, 0, bindHost);
 		} else {
+			rustRelay?.close();
+			rustRelay = null;
 			throw err;
 		}
 	}
@@ -1605,6 +1620,7 @@ export async function startServers() {
 	const url = `http://${bindHost}:${port}/`;
 	console.log(`chiaki-ng WASM (local): ${url}`);
 	console.log(`POSIX proxy WS: ws://${bindHost}:${port}/posix-net`);
+	console.log(`Direct TCP/UDP relay: ${backend}`);
 	console.log(`Home proxy agent: ws://${bindHost}:${port}/posix-net?agent=1`);
 	console.log(`Fichiers UI: ${WWW}`);
 	console.log(`Binaire WASM: ${ROOT}`);
@@ -1635,6 +1651,8 @@ export async function startServers() {
 		port,
 		bindHost,
 		async close() {
+			rustRelay?.close();
+			rustRelay = null;
 			const servers = [httpServer, ...httpsServers];
 			await Promise.all(servers.map((s) => new Promise((resolve) => {
 				if (!s.listening) return resolve();

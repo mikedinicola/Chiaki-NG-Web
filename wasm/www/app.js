@@ -205,9 +205,14 @@ const defaultSettings = {
 	audiobuf: "60",
 	psnId: "",
 	keyboardEnabled: true,
+	pcControls: false,
+	losslessScaling: false,
 	mouseTouchEnabled: true,
 	mouseStick: "rs",
 	mouseSens: 80,
+	mouseDeadzone: 12,
+	sharpen: 35,
+	denoise: 0,
 	mouseInvertY: false,
 	proxyUrl: "",
 	vpadEnabled: false,
@@ -247,6 +252,7 @@ let mouseButtons = new Set();
 let mouseWheel = "";
 let mouseWheelTimer = 0;
 let mouseLook = { x: 0, y: 0 };
+const mouseMotion = ChiakiControls.createMouse();
 let capturing = null;
 let cursorLocked = true;
 let hotkeyArmed = new Set();
@@ -291,9 +297,12 @@ let sessionGate = null;
 let sessionStopping = false;
 let confirmDone = null;
 let registSearchFailed = false;
+let registFailureDetail = "";
 
 const canvas = $("video");
-const ctx2d = canvas.getContext("2d");
+const videoRenderer = ChiakiVideo.create(canvas);
+const videoStats = ChiakiVideo.createStats();
+let requestedBitrate = 0;
 
 function log(msg, level) {
 	const text = maskIpsInText(msg);
@@ -355,9 +364,17 @@ function loadSettings() {
 	if ($("s-discovery")) $("s-discovery").value = settings.discoveryEnabled === false ? "false" : "true";
 	$("s-dblfs").checked = !!settings.dblfs;
 	$("s-keyboard").checked = settings.keyboardEnabled !== false;
+	$("s-pc-controls").checked = !!settings.pcControls;
+	$("s-lossless-scaling").checked = !!settings.losslessScaling;
 	$("s-mouse").checked = settings.mouseTouchEnabled !== false;
 	$("s-mouse-stick").value = settings.mouseStick || "rs";
 	$("s-mouse-sens").value = String(settings.mouseSens || 80);
+	$("s-mouse-deadzone").value = String(settings.mouseDeadzone ?? 12);
+	$("s-sharpen").value = String(settings.sharpen ?? 35);
+	$("s-denoise").value = String(settings.denoise ?? 0);
+	$("s-denoise-val").textContent = videoRenderer.sharp ? settings.denoise + "%" : t("quality.noGpu");
+	$("s-sharpen-val").textContent = videoRenderer.sharp ? settings.sharpen + "%" : t("quality.noGpu");
+	$("s-mouse-deadzone-val").textContent = settings.mouseDeadzone + "%";
 	$("s-mouse-invert").checked = !!settings.mouseInvertY;
 	syncMouseSensLabel();
 	applyVpadOpacity();
@@ -383,9 +400,14 @@ function saveSettings() {
 		audiobuf: $("s-audiobuf").value,
 		psnId: $("s-psn-id").value.trim(),
 		keyboardEnabled: $("s-keyboard").checked,
+		pcControls: $("s-pc-controls").checked,
+		losslessScaling: $("s-lossless-scaling").checked,
 		mouseTouchEnabled: $("s-mouse").checked,
 		mouseStick: $("s-mouse-stick").value,
 		mouseSens: clamp(Number($("s-mouse-sens").value) || 80, 10, 200),
+		mouseDeadzone: clamp(Number($("s-mouse-deadzone").value) || 0, 0, 30),
+		sharpen: clamp(Number($("s-sharpen").value) || 0, 0, 100),
+		denoise: clamp(Number($("s-denoise").value) || 0, 0, 100),
 		mouseInvertY: $("s-mouse-invert").checked,
 		vpadOpacity: vpadOpacityPct(),
 		vpadTheme: vpadThemeId(),
@@ -415,9 +437,14 @@ async function applySettingsNow() {
 	saveSettings();
 	applyVpadOpacity();
 	syncMouseSensLabel();
+	$("s-mouse-deadzone-val").textContent = settings.mouseDeadzone + "%";
+	$("s-sharpen-val").textContent = videoRenderer.sharp ? settings.sharpen + "%" : t("quality.noGpu");
+	$("s-denoise-val").textContent = videoRenderer.sharp ? settings.denoise + "%" : t("quality.noGpu");
 	syncStreamChrome();
 	if (streaming) pushAudioCfg();
 	applyDiscoveryUi();
+	if (settings.losslessScaling && isFullscreen()) await exitStreamFullscreen();
+	if (!$("controls-sidebar").classList.contains("hidden")) renderControlsSidebar();
 	if ((settings.discoveryEnabled !== false) && !discoveryBefore) startDiscovery();
 	if (settings.language !== langBefore) {
 		await loadI18n(settings.language);
@@ -464,8 +491,39 @@ function normalizeBindingMaps(parsed) {
 }
 
 function codesOf(id, mouse) {
+	if (settings.pcControls && !id.startsWith("hk_"))
+		return (mouse ? ChiakiControls.mouse : ChiakiControls.keyboard)[id] || [];
 	const src = mouse ? settings.mousemap : settings.keymap;
 	return asCodeList(src && src[id]);
+}
+
+function renderControlsSidebar() {
+	$("controls-mode").textContent = t(settings.pcControls ? "pc.toggle" : "controls.custom");
+	const list = $("controls-bindings");
+	list.replaceChildren();
+	const row = (label, value) => {
+		const term = document.createElement("dt"), detail = document.createElement("dd");
+		term.textContent = label; detail.textContent = value;
+		list.append(term, detail);
+	};
+	for (const item of KEYMAP_ITEMS) {
+		const bindings = [...codesOf(item.id, false), ...codesOf(item.id, true)];
+		if (bindings.length) row(t("key." + item.id), bindings.map(bindingLabel).join(" / "));
+	}
+	if (settings.pcControls || settings.mouseStick !== "none") row(t("keys.mouseTitle"), t("controls.mouseLook"));
+	for (const item of HOTKEY_ITEMS) {
+		const bindings = [...codesOf(item.id, false), ...codesOf(item.id, true)];
+		if (bindings.length) row(t("key." + item.id), bindings.map(bindingLabel).join(" / "));
+	}
+	$("controls-ls-status").classList.toggle("hidden", !settings.losslessScaling);
+}
+
+function toggleControlsSidebar(force) {
+	const sidebar = $("controls-sidebar");
+	const open = typeof force === "boolean" ? force : sidebar.classList.contains("hidden");
+	if (open) renderControlsSidebar();
+	sidebar.classList.toggle("hidden", !open);
+	$("btn-controls").setAttribute("aria-expanded", String(open));
 }
 
 function setCodes(id, mouse, list) {
@@ -525,6 +583,7 @@ function renderKeymap() {
 		body.appendChild(head);
 		for (const id of group.keys) appendBindRow(body, id);
 	}
+	if (settings.pcControls) body.querySelectorAll("button").forEach((button) => { button.disabled = true; });
 	renderHotkeys();
 	syncCaptureSlots();
 }
@@ -607,6 +666,8 @@ function finishKeyCapture(code) {
 }
 
 function bindingHeld(code) {
+	if (currentView !== "stream") return false;
+	if (settings.pcControls && document.pointerLockElement !== canvas) return false;
 	if (!code) return false;
 	if (code === "WheelUp" || code === "WheelDown") return mouseWheel === code;
 	if (code.startsWith("Mouse")) return mouseButtons.has(Number(code.slice(5)));
@@ -639,7 +700,14 @@ function syncPointerLock() {
 
 function tryPointerLock() {
 	if (!wantsPointerLock()) return;
-	if (document.pointerLockElement !== canvas) canvas.requestPointerLock?.();
+	if (document.pointerLockElement === canvas) return;
+	try {
+		const request = canvas.requestPointerLock?.(settings.pcControls ? { unadjustedMovement: true } : undefined);
+		request?.catch((error) => {
+			if (settings.pcControls && error.name === "NotSupportedError" && wantsPointerLock())
+				canvas.requestPointerLock?.()?.catch?.(() => {});
+		});
+	} catch { /* Older browsers may not accept pointer-lock options. */ }
 }
 
 function toggleCursorLock() {
@@ -3183,24 +3251,7 @@ function streamPresetSize() {
 }
 
 function videoFrameDest(frame) {
-	const vr = frame.visibleRect;
-	const dw = frame.displayWidth || 0;
-	const dh = frame.displayHeight || 0;
-	const cw = frame.codedWidth || 0;
-	const ch = frame.codedHeight || 0;
-	const vw = vr?.width || 0;
-	const vh = vr?.height || 0;
-	let sx = vr?.x || 0;
-	let sy = vr?.y || 0;
-	let sw = vw || dw || cw;
-	let sh = vh || dh || ch;
-	if (cw && sw && cw >= sw * 1.5 && ch >= sh * 1.5) {
-		sx = 0;
-		sy = 0;
-		sw = cw;
-		sh = ch;
-	}
-	return { sx, sy, sw, sh };
+	return ChiakiVideo.frameDest(frame);
 }
 
 function packLengthPrefixed(nals) {
@@ -3325,6 +3376,8 @@ function requestIdrThrottled() {
 }
 
 function resetVideoDecoder() {
+	videoStats.reset(performance.now());
+	$("controls-stream-stats").textContent = t("quality.statsWaiting");
 	decoderSetup = null;
 	decoderReady = false;
 	decoderFailed = false;
@@ -3395,12 +3448,10 @@ async function configureDecoder() {
 				fitVideoToStage();
 			}
 			try {
-				ctx2d.drawImage(frame, d.sx, d.sy, d.sw, d.sh, 0, 0, canvas.width, canvas.height);
-			} catch {
-				ctx2d.drawImage(frame, 0, 0, canvas.width, canvas.height);
-			}
-			try { pushShareFrame(frame); } catch {}
-			frame.close();
+				videoRenderer.draw(frame, d, settings.sharpen, settings.denoise);
+				videoStats.decoded();
+				try { pushShareFrame(frame); } catch {}
+			} finally { frame.close(); }
 		},
 		error: (err) => {
 			const now = performance.now();
@@ -3419,13 +3470,7 @@ async function configureDecoder() {
 }
 
 function effectiveBitrate() {
-	const res = Number(settings.resolution) || 4;
-	const fps = Number(settings.fps) || 60;
-	const caps = { 1: 5000, 2: 9000, 3: 12000, 4: 15000 };
-	let cap = caps[res] || 15000;
-	if (fps <= 30) cap = Math.round(cap * 0.85);
-	const requested = Number(settings.bitrate) || cap;
-	return Math.max(2000, Math.min(requested, cap));
+	return ChiakiControls.bitrate(settings.bitrate);
 }
 
 function avMode() {
@@ -3444,6 +3489,7 @@ function videoDisabled() {
 
 async function pushVideo(ptr, size, lost, recovered) {
 	if (!size || decoderFailed || !streaming || videoDisabled()) return;
+	videoStats.receive(size, lost, recovered);
 	if (lost > 0 && !recovered) {
 		gotKeyframe = false;
 		requestIdrThrottled();
@@ -4336,7 +4382,7 @@ function bindVpadPlay(el, item) {
 
 function syncVpadUi() {
 	const guestKeys = !share.isGuest || !Array.isArray(share.vpadKeys) || share.vpadKeys.length > 0;
-	vpadOn = share.isGuest ? (!!share.vpad && guestKeys) : !!settings.vpadEnabled;
+	vpadOn = share.isGuest ? (!!share.vpad && guestKeys) : (!settings.pcControls && !!settings.vpadEnabled);
 	const btn = $("btn-vpad");
 	if (btn) btn.setAttribute("aria-pressed", vpadOn ? "true" : "false");
 	const pad = $("vpad");
@@ -4393,7 +4439,7 @@ function pollInput() {
 	}
 	{
 		for (const item of KEYMAP_ITEMS) {
-			const held = (settings.keyboardEnabled !== false && codesOf(item.id, false).some(bindingHeld))
+			const held = ((settings.pcControls || settings.keyboardEnabled !== false) && codesOf(item.id, false).some(bindingHeld))
 				|| codesOf(item.id, true).some(bindingHeld);
 			if (!held) continue;
 			if (item.kind === "button") buttons |= BTN[item.bit];
@@ -4409,18 +4455,21 @@ function pollInput() {
 			}
 		}
 	}
-	if (settings.mouseStick === "ls" || settings.mouseStick === "rs") {
-		mouseLook.x *= 0.86;
-		mouseLook.y *= 0.86;
-		if (Math.abs(mouseLook.x) < 0.02) mouseLook.x = 0;
-		if (Math.abs(mouseLook.y) < 0.02) mouseLook.y = 0;
+	if (settings.pcControls && currentView === "stream" && document.pointerLockElement === canvas && ["KeyW", "KeyA", "KeyS", "KeyD"].some((key) => keys.has(key))) {
+		const move = ChiakiControls.movement(keys);
+		lx = stick(move.x); ly = stick(move.y);
+	}
+	const mouseStick = settings.pcControls ? "rs" : settings.mouseStick;
+	if (mouseStick === "ls" || mouseStick === "rs") {
+		mouseLook = mouseMotion.read(performance.now(), Number(settings.mouseSens) || 80, (settings.mouseDeadzone ?? 12) / 100);
+		if (settings.mouseInvertY) mouseLook.y = -mouseLook.y;
 		const mx = stick(mouseLook.x);
 		const my = stick(mouseLook.y);
 		const mouseLive = document.pointerLockElement
 			|| Math.abs(mouseLook.x) > 0.02
 			|| Math.abs(mouseLook.y) > 0.02;
 		if (mouseLive) {
-			if (settings.mouseStick === "ls") {
+			if (mouseStick === "ls") {
 				if (Math.abs(lx) <= 512 && Math.abs(ly) <= 512) { lx = mx; ly = my; }
 			} else if (Math.abs(rx) <= 512 && Math.abs(ry) <= 512) {
 				rx = mx;
@@ -4437,7 +4486,7 @@ function pollInput() {
 	}
 	({ buttons, l2, r2, lx, ly, rx, ry } = mergeGuestPad(buttons, l2, r2, lx, ly, rx, ry));
 	const useTouch = settings.mouseTouchEnabled !== false
-		&& settings.mouseStick === "none"
+		&& !settings.pcControls && settings.mouseStick === "none"
 		&& !mouse0Mapped()
 		&& !document.pointerLockElement
 		&& touch.active;
@@ -5093,6 +5142,7 @@ function openSettingsTab(name) {
 
 async function showView(name, opts) {
 	const prev = currentView;
+	if (name !== "stream") { keys.clear(); mouseButtons.clear(); mouseLook = { x: 0, y: 0 }; mouseMotion.reset(); }
 	currentView = name;
 	if (name !== "stream") await exitStreamFullscreen();
 	$("welcome").classList.toggle("hidden", name !== "welcome");
@@ -5101,7 +5151,7 @@ async function showView(name, opts) {
 	$("stream-view").classList.toggle("hidden", name !== "stream");
 	syncDocumentTitle();
 	if (name === "stream") {
-		if (opts?.fullscreen !== false) enterStreamFullscreen();
+		if (opts?.fullscreen !== false && !settings.losslessScaling) enterStreamFullscreen();
 		syncStreamChrome();
 	}
 	syncPointerLock();
@@ -5529,6 +5579,13 @@ async function startStream(host) {
 	const seq = ++connectSeq;
 	try {
 		saveSettings();
+		const runtimeIssue = ChiakiRuntime.issue(window, true);
+		if (runtimeIssue) {
+			const url = `https://${location.host}/`;
+			showView("stream");
+			await failConnect(seq, t(runtimeIssue, { url }));
+			return;
+		}
 		const wasmUp = wasmRuntimeReady();
 		showView("stream", { fullscreen: wasmUp });
 		setStreamOverlay(wasmUp ? t("log.connecting") : t("log.wasmLoading"));
@@ -5548,7 +5605,7 @@ async function startStream(host) {
 			renderHosts();
 			return;
 		}
-		if (!isFullscreen()) enterStreamFullscreen();
+		if (!isFullscreen() && !settings.losslessScaling) enterStreamFullscreen();
 		resetVideoDecoder();
 		codec = await resolveStreamCodec(Number(settings.codec));
 		if (audio.ctx) {
@@ -5596,6 +5653,7 @@ async function startStream(host) {
 			setStreamOverlay(t("log.connecting"));
 			const outcomeP = openSessionGate();
 			const kbps = effectiveBitrate();
+			requestedBitrate = kbps;
 			if (kbps !== Number(settings.bitrate))
 				log(t("log.bitrateCapped", { kbps: String(kbps) }));
 			const r = api.sessionStart(
@@ -5807,7 +5865,10 @@ function regFail(key, vars) {
 }
 
 function openRegist(host) {
+	setupAccountLookup.cancel();
 	setRegError("");
+	pairGeneration++;
+	setPairBusy(false);
 	$("reg-host").value = host.addr || "";
 	$("reg-host").dataset.real = host.addr || "";
 	$("reg-pin").value = "";
@@ -5817,6 +5878,90 @@ function openRegist(host) {
 	$("regist-modal").dataset.ps5 = host.ps5 ? "1" : "0";
 	$("regist-modal").dataset.name = host.name || "";
 	$("psn-regist-fields").classList.toggle("hidden", !host.ps5);
+	$("setup-pair-help").textContent = t(host.ps5 ? "setup.pairPs5" : "setup.pairPs4");
+	$("setup-account-manual").open = false;
+	$("setup-account-status").textContent = psnIdLooksValid($("reg-psn").value) ? t("setup.accountReady") : "";
+	$("setup-back").classList.toggle("hidden", !host.fromSetup);
+	(host.ps5 && !psnIdLooksValid($("reg-psn").value) ? $("reg-psn-user") : $("reg-pin")).focus();
+}
+
+let pairGeneration = 0;
+let pairBusy = false;
+let setupSearchTimer = null;
+const setupAccountLookup = ChiakiLookup.create({
+	lookup: async (username, signal) => {
+		const { ok, body } = await cloudRequest("/psn-account-id?username=" + encodeURIComponent(username), { timeoutMs: 10000, signal });
+		const id = normalizePsnAccountId(body?.encoded_id || "");
+		if (!ok || !psnIdLooksValid(id)) throw new Error("lookup_failed");
+		return id;
+	},
+	pending: () => {
+		$("reg-lookup").disabled = true;
+		$("setup-account-status").textContent = t("setup.lookingUp");
+	},
+	success: (id) => {
+		$("reg-psn").value = id;
+		$("reg-lookup").disabled = pairBusy;
+		$("setup-account-status").textContent = t("setup.accountReady");
+		setRegError("");
+	},
+	failure: () => {
+		$("reg-lookup").disabled = pairBusy;
+		$("setup-account-manual").open = true;
+		$("setup-account-status").textContent = t("setup.lookupFailed");
+	}
+});
+
+function setPairBusy(busy) {
+	pairBusy = busy;
+	for (const id of ["reg-ok", "reg-cancel", "setup-back", "reg-lookup", "reg-pin", "reg-psn", "reg-psn-user"])
+		$(id).disabled = busy;
+	$("reg-ok").textContent = t(busy ? "setup.pairing" : "regist.ok");
+}
+
+function findSetupAccount() {
+	if (!setupAccountLookup.input($("reg-psn-user").value, true)) {
+		regFail("setup.badUsername"); $("reg-psn-user").focus();
+	}
+}
+
+function renderSetupConsoles() {
+	const list = $("setup-consoles");
+	if (!list || $("add-modal").classList.contains("hidden")) return;
+	list.replaceChildren();
+	for (const host of discovered.filter((h) => ChiakiSetup.validAddress(h.addr))) {
+		const button = document.createElement("button");
+		button.type = "button";
+		button.textContent = `${host.name || (host.ps5 ? "PS5" : "PS4")} · ${host.addr}`;
+		button.onclick = () => {
+			$("add-host").value = host.addr;
+			$("add-name").value = host.name || "";
+			$("add-ps5").value = host.ps5 ? "1" : "0";
+			resetAddPortcheck();
+			syncSetupHelp();
+			$("add-ok").focus();
+		};
+		list.appendChild(button);
+	}
+	if (list.children.length) $("setup-discovery-status").textContent = t("setup.selectConsole");
+}
+
+function syncSetupHelp() {
+	$("setup-address-help").textContent = t($("add-ps5").value === "1" ? "setup.addressPs5" : "setup.addressPs4");
+}
+
+async function findSetupConsoles() {
+	clearTimeout(setupSearchTimer);
+	const status = $("setup-discovery-status");
+	if (!discoveryEnabled()) { status.textContent = t("setup.discoveryOff"); return; }
+	status.textContent = t("setup.searching");
+	await startDiscovery();
+	if ($("add-modal").classList.contains("hidden")) return;
+	renderSetupConsoles();
+	setupSearchTimer = setTimeout(() => {
+		if (!$("add-modal").classList.contains("hidden") && !$("setup-consoles").children.length)
+			status.textContent = t("setup.noneFound");
+	}, 6000);
 }
 
 function normalizeDiscovered(host) {
@@ -5880,6 +6025,7 @@ function applyHostsSnapshot(hosts) {
 		return false;
 	});
 	rememberDiscoveredIds(incoming);
+	renderSetupConsoles();
 	scheduleRenderHosts();
 	if (currentView === "stream") syncDocumentTitle();
 }
@@ -5892,6 +6038,7 @@ function addDiscovered(host) {
 	else discovered.unshift(row);
 	if (k) discoveredSeenAt.set(k, Date.now());
 	rememberDiscoveredIds([row]);
+	renderSetupConsoles();
 	scheduleRenderHosts();
 }
 
@@ -5908,17 +6055,10 @@ function syncAddOkButton() {
 	const btn = $("add-ok");
 	if (!btn) return;
 	const host = ($("add-host")?.value || "").trim();
-	const ready = addPortcheckOk && !!host && host === addPortcheckHost;
+	const ready = ChiakiSetup.validAddress(host);
 	btn.disabled = !ready;
-	btn.title = ready ? "" : t("add.portcheckNeedTest");
-}
-
-function fillAddHostIpv4() {
-	const input = $("add-host");
-	if (!input) return;
-	const ip = String(cloud.ipv4 || "").trim();
-	if (cloud.homeProxy || cloud.homeProxyPending) return;
-	if (ip && !input.value.trim()) input.value = ip;
+	btn.title = ready ? "" : t("add.portcheckNeed");
+	btn.textContent = t($("add-regist").value.trim() || $("add-morning").value.trim() ? "setup.importAction" : "setup.continue");
 }
 
 function resetAddPortcheck() {
@@ -6008,6 +6148,8 @@ function bindUi() {
 		settingsReturnView = "stream";
 		showView("settings");
 	};
+	$("btn-controls").onclick = () => toggleControlsSidebar();
+	$("controls-close").onclick = () => toggleControlsSidebar(false);
 	$("btn-stream-fs").onclick = () => {
 		if (isFullscreen()) exitStreamFullscreen();
 		else enterStreamFullscreen();
@@ -6087,6 +6229,7 @@ function bindUi() {
 	});
 
 	$("btn-add").onclick = () => {
+		clearTimeout(setupSearchTimer);
 		const out = $("add-portcheck-out");
 		if (out) {
 			out.classList.add("hidden");
@@ -6097,9 +6240,14 @@ function bindUi() {
 		$("add-regist").value = "";
 		$("add-morning").value = "";
 		$("add-host").value = "";
-		fillAddHostIpv4();
+		$("setup-import").open = false;
+		$("setup-error").classList.add("hidden");
+		$("setup-discovery-status").textContent = "";
+		$("add-ps5").value = "1";
+		syncSetupHelp();
 		resetAddPortcheck();
 		$("add-modal").classList.remove("hidden");
+		renderSetupConsoles();
 		$("add-host")?.focus();
 	};
 	$("auth-login-form").onsubmit = (e) => { e.preventDefault(); submitAuth(false); };
@@ -6281,47 +6429,76 @@ function bindUi() {
 	$("credits-modal").addEventListener("click", (e) => {
 		if (e.target.id === "credits-modal") $("credits-modal").classList.add("hidden");
 	});
-	$("add-cancel").onclick = () => $("add-modal").classList.add("hidden");
+	$("add-cancel").onclick = () => { clearTimeout(setupSearchTimer); $("add-modal").classList.add("hidden"); };
 	$("add-portcheck").onclick = () => testAddHostPorts();
+	$("setup-discover").onclick = () => findSetupConsoles();
+	$("add-ps5").onchange = syncSetupHelp;
+	for (const id of ["add-regist", "add-morning"]) $(id).addEventListener("input", syncAddOkButton);
 	$("add-host").addEventListener("input", () => {
 		if (($("add-host").value || "").trim() !== addPortcheckHost) resetAddPortcheck();
 	});
 	$("add-ok").onclick = () => {
+		clearTimeout(setupSearchTimer);
 		const host = $("add-host").value.trim();
 		if (!host) return;
 		if (looksLikeIpv6(host)) return log(t("log.registIpv6"), 0);
-		if (!addPortcheckOk || host !== addPortcheckHost) {
-			const out = $("add-portcheck-out");
-			if (out) {
-				out.classList.remove("hidden");
-				out.innerHTML = `<p class="portcheck-sum bad">${escapeHtml(t("add.portcheckNeedTest"))}</p>`;
-			}
-			syncAddOkButton();
-			return;
-		}
-		rememberHost({
+		if (!ChiakiSetup.validAddress(host)) return;
+		const registKey = $("add-regist").value.trim();
+		const morning = $("add-morning").value.trim();
+		const consoleInfo = {
 			host,
-			name: $("add-name").value.trim() || host,
+			addr: host,
+			name: $("add-name").value.trim() || ($("add-ps5").value === "1" ? "PS5" : "PS4"),
 			ps5: $("add-ps5").value === "1",
-			registKey: $("add-regist").value.trim(),
-			morning: $("add-morning").value.trim(),
+			registKey,
+			morning,
 			psnId: normalizePsnAccountId($("add-psn")?.value || "")
-		});
+		};
+		if (registKey || morning) {
+			if (!ChiakiSetup.validKeys(registKey, morning)) {
+				$("setup-error").textContent = t("setup.badKeys");
+				$("setup-error").classList.remove("hidden");
+				return;
+			}
+			rememberHost(consoleInfo);
+		} else {
+			openRegist({ ...consoleInfo, fromSetup: true });
+			if (consoleInfo.psnId) $("reg-psn").value = consoleInfo.psnId;
+		}
 		$("add-modal").classList.add("hidden");
 	};
 
-	$("reg-cancel").onclick = () => { setRegError(""); $("regist-modal").classList.add("hidden"); };
-	$("reg-lookup").onclick = () => lookupPsnUsername($("reg-psn-user").value);
+	$("reg-cancel").onclick = () => { setupAccountLookup.cancel(); pairGeneration++; setRegError(""); $("regist-modal").classList.add("hidden"); };
+	$("setup-back").onclick = () => {
+		setupAccountLookup.cancel();
+		pairGeneration++;
+		$("regist-modal").classList.add("hidden");
+		$("add-modal").classList.remove("hidden");
+		$("add-ok").focus();
+	};
+	$("reg-lookup").onclick = findSetupAccount;
+	$("setup-lookup-fallback").onclick = () => lookupPsnUsername($("reg-psn-user").value);
+	$("reg-psn-user").addEventListener("input", () => {
+		$("reg-psn").value = "";
+		$("reg-lookup").disabled = false;
+		$("setup-account-status").textContent = "";
+		setRegError("");
+		setupAccountLookup.input($("reg-psn-user").value);
+	});
+	$("reg-psn").addEventListener("input", () => { setupAccountLookup.cancel(); $("reg-lookup").disabled = false; $("setup-account-status").textContent = ""; });
 	$("btn-psn-lookup").onclick = () => lookupPsnUsername($("s-psn-user").value);
 	$("reg-ok").onclick = async () => {
-		const pin = Number($("reg-pin").value);
-		if (!pin) return regFail("log.pinRequired");
+		if (pairBusy) return;
+		const pinText = $("reg-pin").value.replace(/\s/g, "");
+		if (!ChiakiSetup.validPin(pinText)) return regFail("setup.badPin");
+		const pin = Number(pinText);
 		const ps5 = Number($("regist-modal").dataset.ps5);
 		const host = ($("reg-host").dataset.real || $("reg-host").value).trim();
-		const psnId = normalizePsnAccountId($("reg-psn").value || psnIdForHost({ addr: host }));
+		const psnId = normalizePsnAccountId($("reg-psn").value);
 		if (ps5 && !psnIdLooksValid(psnId)) {
 			regFail("log.psnHint");
 			$("psn-regist-fields").classList.remove("hidden");
+			$("setup-account-manual").open = true;
 			$("reg-psn").focus();
 			return;
 		}
@@ -6329,16 +6506,21 @@ function bindUi() {
 			regFail("log.registIpv6");
 			return;
 		}
-		if (psnId) upsertHostPsn(host, psnId, { name: $("regist-modal").dataset.name, ps5 });
 		if (host && !isPrivateIpv4(host)) log(t("log.registLanHint"), 0);
 		setRegError(t("log.wasmLoading"), true);
+		pairGeneration++;
+		setupAccountLookup.cancel();
+		setPairBusy(true);
 		const wasmOk = await ensureWasmRuntime();
 		if (!wasmOk || typeof api.regist !== "function") {
+			setPairBusy(false);
 			regFail("log.wasmFailed");
 			return;
 		}
 		registSearchFailed = false;
+		registFailureDetail = "";
 		if (api.regist(host, pin, psnId, ps5, 0) !== 0) {
+			setPairBusy(false);
 			regFail("log.registFailed", { error: "start" });
 			return;
 		}
@@ -6422,6 +6604,37 @@ function bindUi() {
 		};
 	}
 	$("settings-view").addEventListener("change", () => { applySettingsNow(); });
+	$("s-pc-controls").addEventListener("change", () => {
+		keys.clear(); mouseButtons.clear(); mouseLook = { x: 0, y: 0 };
+		mouseMotion.reset();
+		saveSettings(); renderKeymap(); syncVpadUi();
+	});
+	$("quality-lan").onclick = () => {
+		$("s-resolution").value = "4";
+		$("s-fps").value = "60";
+		$("s-codec").value = "1";
+		$("s-bitrate").value = "50000";
+		$("s-sharpen").value = "35";
+		$("s-denoise").value = "0";
+		$("s-decoder").value = "prefer-hardware";
+		applySettingsNow();
+	};
+	$("quality-fog").onclick = () => {
+		$("s-resolution").value = "4"; $("s-fps").value = "60";
+		$("s-codec").value = "1"; $("s-bitrate").value = "80000";
+		$("s-decoder").value = "prefer-hardware";
+		$("s-sharpen").value = "10"; $("s-denoise").value = "45";
+		applySettingsNow();
+	};
+	setInterval(() => {
+		if (!streaming) return;
+		const stats = videoStats.sample(performance.now());
+		if (!stats) return;
+		$("controls-stream-stats").textContent = t("quality.stats", {
+			target: (requestedBitrate / 1000).toFixed(0), actual: stats.mbps.toFixed(1),
+			fps: stats.fps.toFixed(0), lost: stats.lost, width: canvas.width, height: canvas.height
+		});
+	}, 1000);
 	$("settings-view").addEventListener("input", () => { applySettingsNow(); });
 	$("s-language").addEventListener("change", () => { applySettingsNow(); });
 
@@ -6458,17 +6671,14 @@ function bindUi() {
 		tryPointerLock();
 	});
 	document.addEventListener("pointerlockchange", () => {
-		if (!document.pointerLockElement) mouseLook = { x: 0, y: 0 };
+		mouseButtons.clear();
+		if (!document.pointerLockElement) { keys.clear(); mouseLook = { x: 0, y: 0 }; mouseMotion.reset(); }
 		canvas.classList.toggle("cursor-hidden", wantsPointerLock() && !!document.pointerLockElement);
 	});
 	window.addEventListener("mousemove", (e) => {
-		if (!streaming || vpadOn || settings.mouseStick === "none") return;
+		if (!streaming || vpadOn || (!settings.pcControls && settings.mouseStick === "none")) return;
 		if (document.pointerLockElement !== canvas) return;
-		const gain = (Number(settings.mouseSens) || 80) / 40;
-		mouseLook.x = clamp(mouseLook.x + e.movementX * 0.004 * gain, -1, 1);
-		let dy = e.movementY * 0.004 * gain;
-		if (settings.mouseInvertY) dy = -dy;
-		mouseLook.y = clamp(mouseLook.y + dy, -1, 1);
+		mouseMotion.push(e.movementX, e.movementY, performance.now());
 	});
 	window.addEventListener("wheel", (e) => {
 		if (capturing) return;
@@ -6515,6 +6725,12 @@ function bindUi() {
 			else applyCapturedCode(e.code);
 			return;
 		}
+		const editable = e.target?.closest?.("input, textarea, select, [contenteditable]:not([contenteditable=false])");
+		if (ChiakiControls.sidebarHotkey(e, currentView, !!editable)) {
+			e.preventDefault();
+			if (!e.repeat) toggleControlsSidebar();
+			return;
+		}
 		if (e.key === "Escape" && !$("vpad-editor-modal").classList.contains("hidden")) {
 			e.preventDefault();
 			closeVpadEditor();
@@ -6525,12 +6741,14 @@ function bindUi() {
 			return;
 		}
 		keys.add(e.code);
+		if (streaming && currentView === "stream" && !editable && KEYMAP_ITEMS.some((item) => codesOf(item.id, false).includes(e.code))) e.preventDefault();
 		if (streaming && ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," ","Tab"].includes(e.key)) e.preventDefault();
 	});
 	window.addEventListener("keyup", (e) => {
 		keys.delete(e.code);
 		releaseHotkey(e.code);
 	});
+	window.addEventListener("blur", () => { keys.clear(); mouseButtons.clear(); mouseLook = { x: 0, y: 0 }; mouseMotion.reset(); mouseWheel = ""; });
 	window.addEventListener("mousedown", (e) => {
 		mouseButtons.add(e.button);
 		if (capturing || !streaming) return;
@@ -6569,8 +6787,16 @@ function bindModule() {
 	};
 	Module.onLog = (level, msg) => {
 		if (shouldSuppressConnectLog(msg)) return;
+		if (/Reported Application Reason:/i.test(String(msg || "")))
+			registFailureDetail = String(msg);
+		else if (!registFailureDetail && /Regist (failed to|connect failed:)/i.test(String(msg || "")))
+			registFailureDetail = String(msg);
 		if (/Regist (search failed|timed out waiting for search response)/i.test(String(msg || "")))
 			registSearchFailed = true;
+		if (/Regist direct TCP fallback/i.test(String(msg || ""))) {
+			registSearchFailed = false;
+			setRegError(t("setup.directPairing"), true);
+		}
 		log(msg, level);
 	};
 	Module.onHost = addDiscovered;
@@ -6627,13 +6853,14 @@ function bindModule() {
 		}
 	};
 	Module.onRegist = (info) => {
+		setPairBusy(false);
 		if (!info.ok) {
 			log(t("log.registFailed", { error: info.error || "" }), 0);
 			if (registSearchFailed) {
 				log(t("log.registSearchFail"), 0);
 				setRegError(t("log.registSearchFail"));
 			} else {
-				setRegError(t("log.registFailed", { error: info.error || "" }));
+				setRegError(t("log.registFailed", { error: registFailureDetail || info.error || "" }));
 			}
 			return;
 		}
@@ -6696,9 +6923,10 @@ function loadChiakiScript() {
 }
 
 async function startWasmRuntime() {
-	if (!window.isSecureContext || typeof SharedArrayBuffer === "undefined") {
+	const runtimeIssue = ChiakiRuntime.issue(window);
+	if (runtimeIssue) {
 		const httpsUrl = `https://${location.hostname}${location.port ? ":" + location.port : ""}/`;
-		log(t("log.insecureOrigin", { url: httpsUrl }), 0);
+		log(t(runtimeIssue, { url: httpsUrl }), 0);
 		proxyState = "failed";
 		refreshProxyStatus();
 		return false;

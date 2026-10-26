@@ -7,9 +7,26 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $Root
 
+function Import-CMakeTools {
+	if ((Get-Command cmake -ErrorAction SilentlyContinue) -and (Get-Command ninja -ErrorAction SilentlyContinue)) { return }
+	$vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+	if (Test-Path -LiteralPath $vswhere) {
+		$vsRoot = & $vswhere -latest -products '*' -property installationPath
+		if ($vsRoot) {
+			$cmakeTools = Join-Path $vsRoot "Common7\IDE\CommonExtensions\Microsoft\CMake"
+			foreach ($directory in @((Join-Path $cmakeTools "CMake\bin"), (Join-Path $cmakeTools "Ninja"))) {
+				if (Test-Path -LiteralPath $directory) { $env:PATH = "$directory;" + $env:PATH }
+			}
+		}
+	}
+	if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) { throw "CMake is required. Install CMake or Visual Studio CMake tools." }
+	if ($Generator -eq "Ninja" -and -not (Get-Command ninja -ErrorAction SilentlyContinue)) { throw "Ninja is required. Install Ninja or Visual Studio CMake tools." }
+}
+
 function Import-Emsdk {
 	if (Get-Command emcmake -ErrorAction SilentlyContinue) { return }
 	$candidates = @(
+		(Join-Path $Root ".tools\emsdk\emsdk_env.ps1"),
 		(Join-Path $env:USERPROFILE "emsdk\emsdk_env.ps1"),
 		"C:\emsdk\emsdk_env.ps1",
 		"$env:EMSDK\emsdk_env.ps1"
@@ -85,6 +102,7 @@ function Ensure-WasmPython {
 }
 
 Import-Emsdk
+Import-CMakeTools
 $ProtocExe = Ensure-Protoc
 $WasmPython = Ensure-WasmPython
 
@@ -115,7 +133,7 @@ Write-Host "emcc: $((Get-Command emcc).Source)"
 Write-Host "protoc: $ProtocExe"
 Write-Host "python (nanopb): $WasmPython"
 Write-Host "Configuration Emscripten dans $BuildDir ..."
-emcmake cmake -S $Root -B (Join-Path $Root $BuildDir) -G $Generator -DCHIAKI_ENABLE_WASM=ON -DPYTHON_EXECUTABLE="$WasmPython" "-DPROTOC=$ProtocExe"
+emcmake cmake -S $Root -B (Join-Path $Root $BuildDir) -G $Generator -DCHIAKI_ENABLE_WASM=ON "-DGIT_EXECUTABLE=$((Get-Command git).Source)" -DPYTHON_EXECUTABLE="$WasmPython" -DPython_EXECUTABLE="$WasmPython" -DPython3_EXECUTABLE="$WasmPython" "-DPROTOC=$ProtocExe"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Compilation chiaki-wasm ..."

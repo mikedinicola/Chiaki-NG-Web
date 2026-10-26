@@ -1,0 +1,13 @@
+[package]
+name = "chiaki-relay"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+description = "Native TCP/UDP relay for Chiaki-NG's browser client"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "sync", "time", "signal"] }
+
+[profile.release]
+lto = true
+strip = true
