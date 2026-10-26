@@ -8,7 +8,7 @@ est bloqué car sa version Node embarquée précède les correctifs vérifiés.
 
 Port **navigateur + Electron** de Chiaki-NG : `chiaki-lib` tourne en WebAssembly, le réseau POSIX (TCP/UDP vers la PS4/PS5) passe par un **proxy Node.js**.
 
-Client web en ligne (DEMO) : [https://chiaki.csphere.fr/](https://chiaki.csphere.fr/)
+Cette version fonctionne sur votre PC. Commencez par le [guide débutant](../docs/GETTING_STARTED.md).
 
 Build : voir [`Build_WASM.md`](Build_WASM.md).
 
@@ -46,7 +46,7 @@ Le proxy fait trois choses :
 | Port | Usage |
 |---|---|
 | `CHIAKI_WASM_PORT` (**8090**) TCP | HTTP(S) + WebSocket UI et posix-net |
-| **443** TCP | HTTPS public (ex. [chiaki.csphere.fr](https://chiaki.csphere.fr/)) via nginx / reverse-proxy |
+| **443** TCP | Votre propre déploiement HTTPS via nginx / reverse-proxy |
 
 Hors `localhost`, le WASM pthread exige **HTTPS**.
 

@@ -2,6 +2,13 @@
 *.swp
 .idea
 .env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db
+*.key
+*.log
 /db/*.sqlite
 /db/*.sqlite-*
 /db/*.db

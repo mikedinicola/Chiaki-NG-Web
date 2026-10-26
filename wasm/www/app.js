@@ -4646,10 +4646,11 @@ function mergedHosts() {
 	return [...byKey.values()];
 }
 
+let hostIconSerial = 0;
 function iconHtml(ps5, state, key) {
 	const raw = ps5 ? svgIcons.ps5 : svgIcons.ps4;
 	const cls = state === "ready" ? "ready" : (state === "standby" || state === "waking" ? "standby" : "unknown");
-	const prefix = String(key || "h").replace(/[^a-zA-Z0-9_-]/g, "_");
+	const prefix = "console-icon-" + (++hostIconSerial);
 	const svg = raw
 		.replace(/id="([^"]+)"/g, `id="${prefix}-$1"`)
 		.replace(/url\(#([^)]+)\)/g, `url(#${prefix}-$1)`);
@@ -4696,13 +4697,13 @@ function hostView(h) {
 	const registered = h.registered ? t("host.registered") : t("host.unregistered");
 	const origin = h.discovered && h.manual ? t("host.discoveredManual")
 		: h.discovered ? t("host.discovered") : t("host.manual");
-	const idLine = t("host.id", { id: h.id || "—", status: registered });
 	const actionLabel = h.manual && !h.discovered ? t("host.delete") : (!h.registered ? t("host.hide") : "");
 	const act = h.manual && !h.discovered ? "delete" : "hide";
 	const stateKey = "state." + state;
 	const stateName = t(stateKey) === stateKey ? state : t(stateKey);
 	const stateText = t("host.state", { state: stateName }) + (h.appName ? "\n" + t("host.app", { app: h.appName }) : "");
 	const addrShown = revealed.has(h.addr);
+	const idLine = t("host.id", { id: ChiakiSetup.displayConsoleId(h.id, addrShown), status: registered });
 	const displayAddr = addrShown ? h.addr : maskHostAddr(h.addr);
 	const rawName = h.name || h.addr;
 	const displayName = (!h.name || h.name === h.addr) && !addrShown ? maskHostAddr(h.addr) : rawName;

@@ -331,7 +331,7 @@
 	"host.delete": "Delete",
 	"host.wake": "Wake Up",
 	"host.rename": "Rename",
-	"host.showAddr": "Show",
+	"host.showAddr": "Show details",
 	"host.hideAddr": "Hide",
 	"state.standby": "standby",
 	"state.ready": "ready",

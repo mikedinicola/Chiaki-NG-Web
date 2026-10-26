@@ -1,4 +1,7 @@
 globalThis.ChiakiSetup = Object.freeze({
+	displayConsoleId(value, revealed = false) {
+		return value ? (revealed ? String(value) : "••••••••••••") : "—";
+	},
 	validAddress(value) {
 		const s = String(value).trim();
 		if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(s)) return false;

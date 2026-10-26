@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+<title id="title">Chiaki-NG Web</title><desc id="desc">Your PlayStation. Your browser. Local Remote Play with picture and control settings.</desc>
+<defs><linearGradient id="bg" x2="1" y2=".6"><stop stop-color="#101827"/><stop offset="1" stop-color="#102d3a"/></linearGradient><linearGradient id="accent"><stop stop-color="#5eead4"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
+<rect width="1200" height="360" rx="24" fill="url(#bg)"/><circle cx="1080" cy="-80" r="300" fill="#38bdf8" opacity=".05"/><circle cx="1130" cy="400" r="270" fill="#5eead4" opacity=".04"/>
+<rect x="48" y="44" width="5" height="22" rx="2" fill="#5eead4"/><text x="68" y="61" fill="#c5eee9" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="600" letter-spacing="3">CHIAKI-NG WEB</text>
+<text x="48" y="145" fill="#f1f7ff" font-family="Segoe UI,Arial,sans-serif" font-size="60" font-weight="700">Your PlayStation.</text><text x="48" y="214" fill="url(#accent)" font-family="Segoe UI,Arial,sans-serif" font-size="60" font-weight="700">Your browser.</text>
+<text x="50" y="263" fill="#aec3d3" font-family="Segoe UI,Arial,sans-serif" font-size="20">Local Remote Play. A picture and controls you can tune.</text>
+<rect x="49" y="293" width="126" height="30" rx="15" fill="#ffffff" opacity=".07"/><text x="112" y="313" text-anchor="middle" fill="#d0e4ee" font-family="Segoe UI,Arial,sans-serif" font-size="13">PS4 + PS5</text>
+<rect x="185" y="293" width="157" height="30" rx="15" fill="#ffffff" opacity=".07"/><text x="263" y="313" text-anchor="middle" fill="#d0e4ee" font-family="Segoe UI,Arial,sans-serif" font-size="13">RUNS ON YOUR PC</text>
+<rect x="807" y="82" width="330" height="204" rx="15" fill="#09131f" stroke="#39556a" stroke-width="2"/><path d="M808 117H1136" stroke="#39556a"/><circle cx="829" cy="100" r="4" fill="#5eead4"/><circle cx="844" cy="100" r="4" fill="#647c91"/><circle cx="859" cy="100" r="4" fill="#647c91"/>
+<rect x="831" y="143" width="139" height="118" rx="8" fill="#152c3a"/><path d="M850 226L881 169L906 201L928 182L952 226Z" fill="url(#accent)" opacity=".6"/>
+<path d="M992 159H1111M992 184H1093M992 209H1103M992 234H1073" stroke="#48677e" stroke-width="7" stroke-linecap="round"/><circle cx="1092" cy="209" r="7" fill="#5eead4"/>
+</svg>

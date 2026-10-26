@@ -1,249 +1,133 @@
 <p align="center">
-  <img src="Res/chiaking-logo.svg" alt="chiaki-ng" width="420">
+  <img src="docs/images/banner.svg" alt="Chiaki-NG Web — Your PlayStation. Your browser." width="1100">
 </p>
 
-# chiaki-ng - Web Edition
+<p align="center"><strong>Play your PS4 or PS5 on your PC, through a web browser.</strong><br>Your console runs the game. Your PC shows the picture and sends your controls back.</p>
 
-**Security update:** browser launchers now use Node **26.12.1**, with updated
-cryptography/build dependencies. Read the [audit report](docs/SECURITY_AUDIT.md).
-The optional Electron 45.0.0 desktop build is blocked because its bundled Node
-24.22.0 predates the verified security baseline; use the browser edition.
+<p align="center"><a href="docs/GETTING_STARTED.md"><strong>Get started</strong></a> · <a href="#take-a-look">Screenshots</a> · <a href="#make-it-look-and-feel-right">Picture &amp; controls</a> · <a href="docs/BROWSER_SETUP.md">Full guide</a></p>
 
-## Browser fork: start here
+<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml"><img src="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml/badge.svg" alt="Browser checks on Windows and Linux"></a></p>
 
-[Install, pair, quality tuning, controls and troubleshooting](docs/BROWSER_SETUP.md)
-is the complete setup guide for this fork. It includes Windows build/run steps,
-the Rust relay, console pairing, browser-safe keyboard shortcuts, mouse tuning,
-GPU sharpening/noise reduction, received-video statistics, and external Lossless
-Scaling setup. The streaming core remains C/WebAssembly; Node and Rust run on
-the PC that can reach the console.
+## What is this?
 
-**New:** the Clean fog / dark scenes preset requests 1080p60 H.265 at 80 Mbps,
-with edge-aware spatial noise reduction and gentle sharpening. Press backtick
-(`) during streaming for bindings and live received video Mbps/fps/loss. Actual
-bitrate is controlled by the console and varies with the scene; this does not
-provide native 4K, lossless video or a 10-bit HDR decoder.
+Chiaki-NG Web is a free, open-source **Remote Play client**. It connects to your PlayStation so you can play from your PC with a controller, or keyboard and mouse. A small program runs on your PC while the interface opens in your browser.
 
-### Rust relay migration
+Start with your **PC and PlayStation on the same home network**. The console must be on, with Remote Play enabled. An Ethernet cable is ideal for a steady picture.
 
-This checkout adds a native Rust TCP/UDP relay while keeping the browser UI and
-Chiaki C/WebAssembly streaming core. Node still handles accounts, SQLite, static
-files, sharing, and home proxy agents. This is the first migration stage, not a
-complete Rust rewrite.
-
-After building the existing WASM core, run `scripts/run-web.ps1` on Windows or
-`sh scripts/run-web.sh` on Linux/macOS. These build and select the Rust relay.
-Use Node.js 26.12.1 or newer (the account store uses `node:sqlite`). See
-[`wasm/relay-rust/README.md`](wasm/relay-rust/README.md) for configuration,
-architecture, verification, and current limits.
-
-Open-source **PlayStation 4 / PlayStation 5 Remote Play** client. This tree is [chiaki-ng](https://streetpea.github.io/chiaki-ng/) plus a **browser** and **Electron** port: `chiaki-lib` runs as WebAssembly, POSIX TCP/UDP to the console goes through a **Node.js proxy**.
-
-**Live demo:** [https://chiaki.csphere.fr/](https://chiaki.csphere.fr/)
-
-The original Qt desktop, Android and Switch apps are unchanged. Web and Electron are additive.
-
-This project is not endorsed or certified by Sony Interactive Entertainment LLC.
-
----
-
-## Screenshots
-
-<p align="center">
-  <a href="https://chiaki.csphere.fr/"><img src="Res/web.png" alt="Chiaki-NG Web Edition in the browser" width="720"></a>
-</p>
-
-<p align="center"><em>Web client - <a href="https://chiaki.csphere.fr/">chiaki.csphere.fr</a></em></p>
-
-<p align="center">
-  <img src="Res/electron.png" alt="Chiaki-NG Web Edition desktop (Electron)" width="720">
-</p>
-
-<p align="center"><em>Electron desktop app (Windows / Linux / macOS)</em></p>
-
-<p align="center">
-  <img src="Res/chiaki-ng-web_v2.svg" alt="Chiaki-NG Web Edition" width="360">
-</p>
-
----
-
-## Additions
-
-| Area | What was added |
+| What you can do | Where to find it |
 |---|---|
-| **WASM client** | `chiaki-lib` compiled with Emscripten (`wasm/`, `build-wasm/`) |
-| **Web UI** | `wasm/www/` - Material-style UI, WebCodecs H.264/H.265, AudioWorklet |
-| **Node proxy** | `wasm/proxy/` - COOP/COEP static files + WebSocket POSIX relay + REST API |
-| **Electron** | `wasm/electron/` - same stack in a local window (`.exe` / AppImage / `.dmg`) |
-| **`.env`** | One config format for the server and for Electron (separate files) |
-| **Auth** | Accounts, cookie sessions, SQLite - consoles and settings follow the user |
-| **Stream share** | Viewer link (video, audio, physical gamepad, virtual pad) over WebRTC |
-| **Keys & mouse** | Separate keyboard / mouse remaps, cursor lock, **F8** |
-| **Virtual pad** | On-screen DualShock-style pad for phones |
-| **i18n** | French and English (`wasm/www/i18n/`) |
-| **Build scripts** | `scripts/build-wasm.*`, `scripts/build-electron.*`, `scripts/run-electron.*` |
+| Connect with a guided pairing screen | **+** on the home screen |
+| Use a controller or a familiar keyboard/mouse layout | **Settings → Keys** |
+| Choose clearer video or reduce noisy fog and dark scenes | **Settings → Stream** |
+| See controls and live picture statistics | Press **backtick (`)** while streaming |
+| Keep console addresses and IDs hidden | Hidden until you select **Show details** |
 
-## Modifications (vs stock chiaki-ng)
+## Start here
 
-- CMake option `CHIAKI_ENABLE_WASM`: Qt GUI / CLI / tests off in the Emscripten cache only; a normal Qt build still uses a **separate** CMake directory (do not mix `emcmake` with the desktop tree).
-- POSIX `socket` / `bind` / `select` / … are wrapped in `wasm/src/` and forwarded to Node over one WebSocket (`/posix-net`).
-- Stream defaults in the web UI: **1080p**, **60 fps**, **15000 kbps**, H.265.
-- Guided console setup: nearby discovery or IPv4 address, PSN username lookup, then PIN pairing. Existing keys can be imported under an advanced option.
-- No PSN holepunch / Remote Play over PSN in the WASM build (LAN or public IPv4 + NAT).
+### 1 · Set it up once
 
-French write-up: [`wasm/README_FR.md`](wasm/README_FR.md). English: [`wasm/README.md`](wasm/README.md).
+Follow the **[Windows first-time setup guide](docs/GETTING_STARTED.md)**. It explains what to install, which commands to copy, and what to expect on screen.
 
----
+This repository contains the source code. First-time setup includes building the streaming component; there is currently no ready-to-run installer for this fork. The guide separates that one-time work from opening the app each day.
 
-## How the web version works
+Already comfortable with development tools? Use the [complete build and configuration guide](docs/BROWSER_SETUP.md).
 
-The browser cannot open POSIX sockets. The page loads the UI and `chiaki.wasm`.
-Node serves the files with **COOP/COEP** (required for `SharedArrayBuffer` /
-pthreads). With `CHIAKI_RELAY_BACKEND=rust`, the direct console TCP/UDP calls go
-through the authenticated Rust sidecar. Node remains available as a legacy
-backend and handles approved home-agent routing in either mode.
+### 2 · Pair your PlayStation
 
-<p align="center">
-  <img src="Res/architecture.svg" alt="Browser or Electron → Node proxy → PS4/PS5" width="720">
-</p>
+1. On PS5, open **Settings → System → Remote Play** and enable Remote Play.
+2. Open **Pair Device / Link Device** and leave its code visible.
+3. In Chiaki, press **+**, select your console or enter its local address, then follow the instructions. On PS4, use **Remote Play Connection Settings**.
+4. Select the saved console to start playing.
 
-**Electron** is the same binary and UI, with the proxy bound to `127.0.0.1` only (default port **18780**). It does **not** replace the hosted web server and does **not** read the SERVER `.env` (it uses a file in the user profile).
+Your **PSN username**, **account ID**, and **pairing code** are different things. The setup screen explains each one. The account ID is a technical identifier; you never enter your PSN password here. Automatic username lookup uses an external service; manual account-ID entry is also available.
 
-### Ports
+### 3 · Open it next time
 
-**Machine that runs Node** (server / PC):
+In PowerShell, from the project folder:
 
-| Port | Usage |
-|---|---|
-| `CHIAKI_WASM_PORT` (default **8080**, example **8090**) TCP | HTTP(S) + WebSocket UI and posix-net |
-| **443** TCP | Public HTTPS (e.g. [chiaki.csphere.fr](https://chiaki.csphere.fr/)) behind nginx |
+```powershell
+.\scripts\run-web.ps1 -NoBuild -Port 8090
+```
 
-Outside `localhost`, WASM pthreads need **HTTPS**.
+Keep that terminal open and visit **http://127.0.0.1:8090/**. That address means “this PC.” Closing the terminal stops the server.
 
-**Router / console** (Remote Play, IPv4):
+## Take a look
 
-| Port | Proto | Role |
+Fresh screenshots from this fork. The pairing picture uses an **example address**; account and code fields are empty. Console addresses and IDs are masked.
+
+<p align="center"><img src="docs/images/stream-quality.jpg" alt="Stream settings with the clean-fog preset, sharpening and noise reduction" width="1000"><br><em>Pick a picture preset, then adjust sharpening and noise reduction to taste.</em></p>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="docs/images/pair-console.jpg" alt="Guided pairing with empty account fields and an example address"><br><strong>Pair once.</strong> Instructions stay beside the fields you need.</td>
+<td width="50%" valign="top"><img src="docs/images/pc-controls.jpg" alt="Keyboard and mouse settings"><br><strong>Choose your controls.</strong> Use the PC preset or keep your own bindings.</td>
+</tr>
+</table>
+
+## Make it look and feel right
+
+**Start with a preset in Settings → Stream.** A higher bitrate lets the console send more picture data. It helps with compression, but the actual rate varies with what is happening on screen.
+
+| Preset | Use it for | Requested video |
 |---|---|---|
-| **9295** | TCP | Remote Play session (optional connection test in setup) |
-| **9296** / **9297** | UDP | Video / audio stream |
-| **987** | UDP | PS4 discovery (LAN) |
-| **9302** | UDP | PS5 discovery (LAN) |
+| **High quality LAN** | A clear everyday picture on a good home network | 1080p, 60 fps, H.265, 50 Mbps |
+| **Clean fog / dark scenes** | Grainy fog, noisy shadows and dark gradients | 1080p, 60 fps, H.265, 80 Mbps; gentle sharpening and noise reduction |
 
-### `.env` (server)
+Restart after changing bitrate or codec. Too much noise reduction can soften fine details. Press **`** to see the video bitrate actually arriving. [Picture troubleshooting →](docs/BROWSER_SETUP.md#picture-quality-and-fog-noise)
 
-Copy [`.env.example`](.env.example) to `.env` at the repo root:
+**For keyboard and mouse**, enable **Settings → Keys → PC keyboard + mouse controls**, then click the video to capture the cursor.
 
-```env
-CHIAKI_AUTH_ENABLED=true
-CHIAKI_AUTH_ALLOW_REGISTER=true
-CHIAKI_ADMIN_USER=
-CHIAKI_ADMIN_EMAIL=
-CHIAKI_ADMIN_PASSWORD=
-CHIAKI_DB_DIR=./db
-CHIAKI_DB_NAME=chiaki.sqlite
-CHIAKI_SESSION_DAYS=30
-CHIAKI_SESSION_SECRET=change-me
-CHIAKI_MAX_HOSTS=32
-CHIAKI_WASM_PORT=8090
-```
-
-Electron: `%AppData%/Chiaki-NG Web/.env` on Windows - not the server file. Auth is off by default in the exe.
-
----
-
-## Build: web (WASM)
-
-Always from the **repository root**.
-
-```bash
-git submodule update --init --recursive
-```
-
-Install once: [Emscripten](https://emscripten.org/docs/getting_started/downloads.html), CMake, Ninja, Python 3, Node.js ≥ 26.12.1.
-
-`.\scripts\build-wasm.ps1` downloads **protoc 36.2** into `tools/protoc/` if missing, and creates `tools/wasm-python` (protobuf **7.36.2**) so nanopb works with Python 3.13.
-
-**Windows**
-
-```powershell
-.\scripts\build-wasm.ps1
-node wasm/proxy/server.mjs
-```
-
-Open http://127.0.0.1:8080/ (or the port in `.env`).
-
-**Linux**
-
-```bash
-source ~/emsdk/emsdk_env.sh
-chmod +x scripts/build-wasm.sh
-./scripts/build-wasm.sh
-node wasm/proxy/server.mjs
-```
-
-Output: `build-wasm/wasm/` (`chiaki.wasm`, `chiaki.js`, copied UI and proxy).
-
-Full install notes: [`wasm/Build_WASM.md`](wasm/Build_WASM.md) · [`wasm/Build_WASM_FR.md`](wasm/Build_WASM_FR.md)
-
----
-
-## Build: Electron
-
-Requires **WASM already built** (`build-wasm/wasm/chiaki.wasm`). Pack on the **target OS**.
-
-**Windows**
-
-```powershell
-.\scripts\build-wasm.ps1
-.\scripts\build-electron.ps1
-```
-
-Output: `wasm/build/pack-…/win-unpacked/chiaki-ng-web.exe`
-
-Dev window (no installer):
-
-```powershell
-.\scripts\run-electron.ps1
-```
-
-**Linux**
-
-```bash
-source ~/emsdk/emsdk_env.sh
-./scripts/build-wasm.sh
-chmod +x scripts/build-electron.sh scripts/run-electron.sh
-./scripts/build-electron.sh
-```
-
-**macOS:** `./scripts/build-electron.sh mac`
-
-| Script | Role |
+| Key | Action in the PC preset |
 |---|---|
-| `scripts/build-wasm.ps1` / `.sh` | Configure Emscripten + compile `chiaki-wasm` |
-| `scripts/run-electron.ps1` / `.sh` | Dev: start Electron against the local WASM build |
-| `scripts/build-electron.ps1` / `.sh` | Package `.exe` / AppImage / mac app into `wasm/build/` |
+| **W A S D** / mouse | Move / look |
+| **Left / right click** | Fire / aim |
+| **Space / Shift** | Jump / sprint |
+| **R / E** | Reload / interact |
+| **B / N / P** | PS button / Share / Options |
+| **F8** | Release or capture the mouse |
+| **`** | Show or hide the controls sidebar |
 
----
+Games still receive controller inputs, so their button layouts and maximum turn speed apply. Adjust mouse sensitivity and dead-zone compensation in Keys if movement feels too slow or jumpy.
 
-## Limits (WASM)
+## A few useful answers
 
-- No Remote Play via PSN / holepunch
-- IPv4 only
-- Chrome / Edge / Firefox recent (WebCodecs + SharedArrayBuffer)
-- HTTPS required off localhost
+<details>
+<summary><strong>Does it run PlayStation games on the PC?</strong></summary>
 
----
+Your PlayStation runs the game. This app streams its picture and sound to the PC and sends your controls back. Keep the console on and Remote Play enabled.
 
-## Desktop / other platforms (chiaki-ng)
+</details>
 
-Qt, Android, Switch and documentation for the classic clients: [streetpea.github.io/chiaki-ng](https://streetpea.github.io/chiaki-ng/).
+<details>
+<summary><strong>Will it look like native 4K? What about frame generation?</strong></summary>
 
-Community Discord: [discord.gg/tAMbRuwXDH](https://discord.gg/tAMbRuwXDH)
+This client requests up to a 1080p stream. Sharpening and extra bitrate cannot recreate native 4K detail. Lossless Scaling can add displayed frames externally; activate it in your installed Windows app. The browser does not bundle or automatically enable that proprietary engine.
 
----
+</details>
 
-## Credits
+<details>
+<summary><strong>What stays on my PC?</strong></summary>
 
-- **~thestr4ng3r** - original Chiaki
-- **streetpea** - chiaki-ng
-- **CSystem** - Chiaki-NG Web Edition ([chiaki.csphere.fr](https://chiaki.csphere.fr/))
+Local configuration, saved registration details and account databases are not included in this repository. The home screen masks console addresses and IDs; Show details reveals them locally. PSN username lookup sends the entered public username to a third-party provider; use manual account-ID entry to avoid that lookup. Keep registration keys and pairing codes out of public screenshots.
+
+</details>
+
+<details>
+<summary><strong>Can I use the Electron desktop app?</strong></summary>
+
+Use the browser edition for now. The optional Electron 45.0.0 build is blocked because its bundled Node version predates the verified security fixes. See the [security audit](docs/SECURITY_AUDIT.md) for the exact versions and remaining exception.
+
+</details>
+
+## More help
+
+- **[First-time setup](docs/GETTING_STARTED.md)** — a plain-language Windows walkthrough.
+- **[Full browser guide](docs/BROWSER_SETUP.md)** — pairing, quality, controls and troubleshooting.
+- **[Build instructions](wasm/Build_WASM.md)** — Windows and Linux build details.
+- **[Security audit](docs/SECURITY_AUDIT.md)** — checked versions, dependencies and limitations.
+- **[Privacy review](docs/PRIVACY_REVIEW.md)** — what was checked before publishing these pictures.
+- **[Rust relay](wasm/relay-rust/README.md)** — architecture and developer checks.
+
+The browser interface uses Chiaki’s C/WebAssembly streaming core, a Rust network relay and a Node server. This community fork builds on [CSystem77/Chiaki-NG-Web](https://github.com/CSystem77/Chiaki-NG-Web), [chiaki-ng](https://github.com/streetpea/chiaki-ng), and the original Chiaki by **~thestr4ng3r**. Upstream contributors retain their credit and licenses.
+
+Released under the included [license](COPYING). This project is not affiliated with or endorsed by Sony Interactive Entertainment.

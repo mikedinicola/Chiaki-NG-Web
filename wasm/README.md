@@ -2,7 +2,7 @@
 
 **Browser + Electron** port of Chiaki-NG: `chiaki-lib` runs as WebAssembly, POSIX networking (TCP/UDP to the PS4/PS5) goes through a **Node.js proxy**.
 
-Online web client (DEMO): [https://chiaki.csphere.fr/](https://chiaki.csphere.fr/)
+Start with the [beginner setup guide](../docs/GETTING_STARTED.md). This fork runs on your PC.
 
 Build: see [`Build_WASM.md`](Build_WASM.md).
 
@@ -40,7 +40,7 @@ The proxy does three things:
 | Port | Usage |
 |---|---|
 | `CHIAKI_WASM_PORT` (**8090**) TCP | HTTP(S) + WebSocket UI and posix-net |
-| **443** TCP | Public HTTPS (e.g. [chiaki.csphere.fr](https://chiaki.csphere.fr/)) via nginx / reverse-proxy |
+| **443** TCP | Your own HTTPS deployment via nginx / reverse-proxy |
 
 Outside `localhost`, WASM pthreads require **HTTPS**.
 

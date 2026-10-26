@@ -2,6 +2,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import "../www/console-setup.js";
 
+test("console identifiers stay masked unless explicitly revealed", () => {
+	const id = "001122AABBCC";
+	assert.equal(ChiakiSetup.displayConsoleId(id), "••••••••••••");
+	assert.equal(ChiakiSetup.displayConsoleId(id, true), id);
+	assert.equal(ChiakiSetup.displayConsoleId(""), "—");
+});
+
 test("setup accepts console IPv4 addresses and rejects malformed or special destinations", () => {
 	for (const ip of ["192.168.1.70", "10.0.0.2", "172.16.1.1", "203.0.113.5"])
 		assert.equal(ChiakiSetup.validAddress(ip), true, ip);
