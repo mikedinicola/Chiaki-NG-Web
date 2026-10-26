@@ -1,5 +1,11 @@
 # Chiaki-NG Web Edition
 
+Pour cette version, utilisez Node **26.12.1** avec `scripts/install-node.ps1`,
+puis `scripts/run-web.ps1`. Le relais Rust, les réglages de bruit/brouillard et
+les contrôles PC sont décrits dans le [guide complet](../docs/BROWSER_SETUP.md).
+Consultez aussi l'[audit de sécurité](../docs/SECURITY_AUDIT.md) : Electron 45.0.0
+est bloqué car sa version Node embarquée précède les correctifs vérifiés.
+
 Port **navigateur + Electron** de Chiaki-NG : `chiaki-lib` tourne en WebAssembly, le réseau POSIX (TCP/UDP vers la PS4/PS5) passe par un **proxy Node.js**.
 
 Client web en ligne (DEMO) : [https://chiaki.csphere.fr/](https://chiaki.csphere.fr/)

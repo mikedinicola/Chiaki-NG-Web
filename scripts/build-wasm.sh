@@ -11,9 +11,9 @@ fi
 
 PROTOC_DIR="$ROOT/tools/protoc/bin"
 PROTOC_BIN="$PROTOC_DIR/protoc"
-VER="3.9.1"
+VER="36.2"
 NEED=1
-if [ -x "$PROTOC_BIN" ] && "$PROTOC_BIN" --version 2>/dev/null | grep -q "3.9.1"; then
+if [ -x "$PROTOC_BIN" ] && "$PROTOC_BIN" --version 2>/dev/null | grep -q '^libprotoc 36\.2$'; then
 	NEED=0
 fi
 if [ "$NEED" -eq 1 ]; then
@@ -30,14 +30,8 @@ if [ "$NEED" -eq 1 ]; then
 fi
 export PATH="$PROTOC_DIR:$PATH"
 if [ ! -x "$PROTOC_BIN" ]; then
-	echo "protoc 3.9.1 introuvable dans tools/protoc/bin." >&2
+	echo "protoc 36.2 introuvable dans tools/protoc/bin." >&2
 	exit 1
-fi
-
-NANOPB_PB2="$ROOT/third-party/nanopb/generator/proto/nanopb_pb2.py"
-if [ -f "$NANOPB_PB2" ] && grep -q runtime_version "$NANOPB_PB2"; then
-	echo "Suppression de nanopb_pb2.py incompatible ..."
-	rm -f "$NANOPB_PB2"
 fi
 
 GF_CPU="$ROOT/third-party/gf-complete/src/gf_cpu.c"
@@ -57,16 +51,19 @@ VENV="$ROOT/tools/wasm-python"
 if [ -x "$VENV/bin/python" ]; then
 	WASM_PYTHON="$VENV/bin/python"
 else
-	echo "Creation de tools/wasm-python (protobuf 4.25.3, compatible nanopb) ..."
+	echo "Creation de tools/wasm-python (protobuf 7.36.2) ..."
 	python3 -m venv "$VENV"
 	WASM_PYTHON="$VENV/bin/python"
 fi
-if ! "$WASM_PYTHON" -c "from google.protobuf.descriptor_pb2 import FileOptions; assert hasattr(FileOptions,'RegisterExtension')" 2>/dev/null; then
-	echo "Installation de protobuf 4.25.3 dans tools/wasm-python ..."
-	"$WASM_PYTHON" -m pip install --quiet --disable-pip-version-check "protobuf==4.25.3"
+if ! "$WASM_PYTHON" -c "import google.protobuf; assert google.protobuf.__version__ == '7.36.2'" 2>/dev/null; then
+	echo "Installation de protobuf 7.36.2 dans tools/wasm-python ..."
+	"$WASM_PYTHON" -m pip install --quiet --disable-pip-version-check "protobuf==7.36.2"
 fi
 
-emcmake cmake -S "$ROOT" -B "$ROOT/$BUILD_DIR" -G Ninja -DCHIAKI_ENABLE_WASM=ON -DPYTHON_EXECUTABLE="$WASM_PYTHON" -DPROTOC="$PROTOC_BIN"
+NANOPB_PROTO="$ROOT/third-party/nanopb/generator/proto"
+"$PROTOC_BIN" "--proto_path=$NANOPB_PROTO" "--proto_path=$ROOT/tools/protoc/include" "--python_out=$NANOPB_PROTO" "$NANOPB_PROTO/nanopb.proto"
+
+emcmake cmake -S "$ROOT" -B "$ROOT/$BUILD_DIR" -G Ninja -DCHIAKI_ENABLE_WASM=ON -DPYTHON_EXECUTABLE="$WASM_PYTHON" -DPython_EXECUTABLE="$WASM_PYTHON" -DPython3_EXECUTABLE="$WASM_PYTHON" -DPROTOC="$PROTOC_BIN"
 cmake --build "$ROOT/$BUILD_DIR" --target chiaki-wasm
 echo "OK. Lancer: node $ROOT/$BUILD_DIR/wasm/server.mjs"
 echo "Puis ouvrir http://127.0.0.1:8080/"

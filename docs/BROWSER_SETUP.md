@@ -7,13 +7,14 @@ rewrite. See [relay architecture](../wasm/relay-rust/README.md).
 
 ## Windows quick start
 
-Install Git, Node.js 24+, stable Rust (MSVC target), Visual Studio C++ Build Tools,
+Install Git, Node.js 26.12.1+, stable Rust (MSVC target), Visual Studio C++ Build Tools,
 CMake, Ninja, Python 3 and Emscripten. The tested local Emscripten SDK is 6.0.13.
 Rust and Emscripten are build tools, not browser extensions.
 
 ```powershell
 git clone --recurse-submodules https://github.com/SKIZZOO/Chiaki-NG-Web.git
 cd Chiaki-NG-Web
+.\scripts\install-node.ps1
 # If Emscripten is not already installed:
 git clone https://github.com/emscripten-core/emsdk.git .tools/emsdk
 .\.tools\emsdk\emsdk install 6.0.13
@@ -22,8 +23,9 @@ git clone https://github.com/emscripten-core/emsdk.git .tools/emsdk
 .\scripts\run-web.ps1 -Port 8090
 ```
 
-The build script creates an isolated Python environment with protobuf 4.25.3 and
-downloads protoc 3.9.1. The launcher builds the Rust relay. Open
+The build script creates an isolated Python environment with protobuf 7.36.2 and
+downloads protoc 36.2. The Node installer verifies the official archive and installs
+the pinned npm 12.2.1 into the workspace. The launcher builds the Rust relay. Open
 `http://127.0.0.1:8090/` in a Chromium browser supporting WebCodecs H.265. Future
 launches can use `.\scripts\run-web.ps1 -NoBuild -Port 8090`.
 

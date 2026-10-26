@@ -26,8 +26,14 @@ typedef struct chiaki_ecdh_t
 // CHIAKI_LIB_ENABLE_MBEDTLS must be defined
 // globally (whole project)
 #ifdef CHIAKI_LIB_ENABLE_MBEDTLS
-	// mbedtls ecdh context
-	mbedtls_ecdh_context ctx;
+	// Own the public low-level EC objects; do not depend on private ECDH layout.
+	struct {
+		mbedtls_ecp_group grp;
+		mbedtls_mpi d;
+		mbedtls_ecp_point Q;
+		mbedtls_ecp_point Qp;
+		mbedtls_mpi z;
+	} ctx;
 	// deterministic random bit generator
 	mbedtls_ctr_drbg_context drbg;
 #else

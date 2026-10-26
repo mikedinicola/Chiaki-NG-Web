@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'wasm/proxy/**'
+      - 'wasm/electron/**'
+      - '.node-version'
+      - '.npm-version'
       - 'wasm/relay-rust/**'
       - 'wasm/www/runtime-checks.js'
       - 'wasm/www/console-setup.js'
@@ -17,6 +20,9 @@ on:
   pull_request:
     paths:
       - 'wasm/proxy/**'
+      - 'wasm/electron/**'
+      - '.node-version'
+      - '.npm-version'
       - 'wasm/relay-rust/**'
       - 'wasm/www/runtime-checks.js'
       - 'wasm/www/console-setup.js'
@@ -38,14 +44,21 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          node-version: '24'
+          submodules: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: '.node-version'
+      - run: npm install --global npm@12.2.1 --ignore-scripts
+      - run: npm ci --prefix wasm/electron --ignore-scripts
+      - run: npm audit --prefix wasm/electron --audit-level=low
       - name: Install Rust checks
         run: rustup component add rustfmt clippy
       - run: cargo fmt --manifest-path wasm/relay-rust/Cargo.toml --check
       - run: cargo clippy --locked --manifest-path wasm/relay-rust/Cargo.toml --all-targets -- -D warnings
       - run: cargo test --locked --manifest-path wasm/relay-rust/Cargo.toml
+      - run: cargo install cargo-audit --version 0.22.2 --locked
+      - run: cargo audit --file wasm/relay-rust/Cargo.lock
       - run: cargo build --release --locked --manifest-path wasm/relay-rust/Cargo.toml
       - run: node --test wasm/proxy/runtime-checks.test.mjs wasm/proxy/rust-relay.test.mjs wasm/proxy/console-setup.test.mjs wasm/proxy/client-features.test.mjs

@@ -386,12 +386,7 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_gkcrypt_gmac(ChiakiGKCrypt *gkcrypt, uint64
 		return CHIAKI_ERR_UNKNOWN;
 	}
 
-	// encrypt without additional data
-	if(mbedtls_gcm_starts(&actx, MBEDTLS_GCM_ENCRYPT, iv, CHIAKI_GKCRYPT_BLOCK_SIZE, NULL, 0) != 0)
-	{
-		mbedtls_gcm_free(&actx);
-		return CHIAKI_ERR_UNKNOWN;
-	}
+	// The one-shot crypt_and_tag call initializes GCM itself (Mbed TLS 2 and 3).
 	// set "additional data" only whitout input nor output
 	// to get the same result as:
 	// EVP_EncryptUpdate(ctx, NULL, &len, buf, (int)buf_size)

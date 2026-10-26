@@ -24,9 +24,9 @@ Output: `build-wasm/wasm/` — run with `node wasm/proxy/server.mjs` then http:/
 |---|---|---|
 | Git | yes | `sudo apt install git` |
 | [Emscripten (emsdk)](https://emscripten.org/docs/getting_started/downloads.html) | `emcc` / `emcmake` | same |
-| CMake + Ninja + Python 3 | yes (the script creates `tools\wasm-python` with protobuf 4.25.3 for nanopb) | `sudo apt install cmake ninja-build python3` |
+| CMake + Ninja + Python 3 | yes (the script creates `tools\wasm-python` with protobuf 7.36.2 for nanopb) | `sudo apt install cmake ninja-build python3` |
 | `protoc` | downloaded by the script into `tools\protoc\` (not in git) | `sudo apt install protobuf-compiler` (or the script downloads it) |
-| Node.js ≥ 24 | to **run** the server (`node:sqlite`) | install Node.js 24 or newer |
+| Node.js ≥ 26.12.1 | to **run** the server (`node:sqlite`) | install Node.js 26.12.1 or newer |
 
 **Emscripten (once)**
 
@@ -84,7 +84,7 @@ Output: `wasm/build/pack-…/win-unpacked/chiaki-ng-web.exe` (Windows) or AppIma
 ### Install
 
 - All of the **WASM** above, **already built**
-- Node.js ≥ 24 + npm (the script runs `npm install` in `wasm/electron/`)
+- Node.js ≥ 26.12.1 + npm (the script runs `npm install` in `wasm/electron/`)
 
 
 ### Build

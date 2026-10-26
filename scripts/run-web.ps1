@@ -4,6 +4,12 @@ $ErrorActionPreference = "Stop"
 $projectDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Push-Location $projectDir
 try {
+    $nodeVersion = (Get-Content -LiteralPath "$projectDir\.node-version" -Raw).Trim()
+    $nodePath = "$projectDir\.tools\node-v$nodeVersion-win-x64\node.exe"
+    if (-not (Test-Path -LiteralPath $nodePath)) { $nodePath = (Get-Command node -ErrorAction Stop).Source }
+    if ([version](& $nodePath -p 'process.versions.node') -lt [version]$nodeVersion) {
+        throw "Node $nodeVersion or newer is required. Run scripts/install-node.ps1."
+    }
     if ($PSBoundParameters.ContainsKey('Port')) { $env:CHIAKI_WASM_PORT = [string]$Port }
     $cargoCommand = Get-Command cargo -ErrorAction SilentlyContinue
     if (-not $cargoCommand -and (Test-Path -LiteralPath "$projectDir\.tools\cargo\bin\cargo.exe")) {
@@ -28,7 +34,7 @@ try {
     if (-not (Test-Path -LiteralPath "$wasmRoot\chiaki.wasm")) {
         Write-Warning "The streaming core has not been built. The UI will open, but Remote Play needs scripts/build-wasm.ps1 first."
     }
-    node wasm/proxy/server.mjs
+    & $nodePath wasm/proxy/server.mjs
     if ($LASTEXITCODE -ne 0) { throw "Web server stopped with an error." }
 } finally {
     Pop-Location

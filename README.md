@@ -4,6 +4,11 @@
 
 # chiaki-ng - Web Edition
 
+**Security update:** browser launchers now use Node **26.12.1**, with updated
+cryptography/build dependencies. Read the [audit report](docs/SECURITY_AUDIT.md).
+The optional Electron 45.0.0 desktop build is blocked because its bundled Node
+24.22.0 predates the verified security baseline; use the browser edition.
+
 ## Browser fork: start here
 
 [Install, pair, quality tuning, controls and troubleshooting](docs/BROWSER_SETUP.md)
@@ -28,7 +33,7 @@ complete Rust rewrite.
 
 After building the existing WASM core, run `scripts/run-web.ps1` on Windows or
 `sh scripts/run-web.sh` on Linux/macOS. These build and select the Rust relay.
-Use Node.js 24 or newer (the account store uses `node:sqlite`). See
+Use Node.js 26.12.1 or newer (the account store uses `node:sqlite`). See
 [`wasm/relay-rust/README.md`](wasm/relay-rust/README.md) for configuration,
 architecture, verification, and current limits.
 
@@ -154,9 +159,9 @@ Always from the **repository root**.
 git submodule update --init --recursive
 ```
 
-Install once: [Emscripten](https://emscripten.org/docs/getting_started/downloads.html), CMake, Ninja, Python 3, Node.js ≥ 24.
+Install once: [Emscripten](https://emscripten.org/docs/getting_started/downloads.html), CMake, Ninja, Python 3, Node.js ≥ 26.12.1.
 
-`.\scripts\build-wasm.ps1` downloads **protoc 3.9.1** into `tools/protoc/` if missing, and creates `tools/wasm-python` (protobuf **4.25.3**) so nanopb works with Python 3.13.
+`.\scripts\build-wasm.ps1` downloads **protoc 36.2** into `tools/protoc/` if missing, and creates `tools/wasm-python` (protobuf **7.36.2**) so nanopb works with Python 3.13.
 
 **Windows**
 

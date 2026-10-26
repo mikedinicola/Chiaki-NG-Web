@@ -80,7 +80,7 @@ message(STATUS "Chiaki WASM output directory: ${CMAKE_CURRENT_BINARY_DIR}")
 # Explicit regression target; kept out of the shipping browser bundle.
 if(CHIAKI_LIB_ENABLE_MBEDTLS AND TARGET mbedcrypto)
 	add_executable(chiaki-wasm-crypto-test EXCLUDE_FROM_ALL
-		tests/rpcrypt.c "${PROJECT_SOURCE_DIR}/lib/src/rpcrypt.c")
+		tests/rpcrypt.c "${PROJECT_SOURCE_DIR}/lib/src/rpcrypt.c" "${PROJECT_SOURCE_DIR}/lib/src/ecdh.c")
 	target_include_directories(chiaki-wasm-crypto-test PRIVATE
 		"${PROJECT_SOURCE_DIR}/lib/include" "${PROJECT_BINARY_DIR}/lib/include")
 	target_compile_definitions(chiaki-wasm-crypto-test PRIVATE CHIAKI_LIB_ENABLE_MBEDTLS)

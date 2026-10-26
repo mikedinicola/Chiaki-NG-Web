@@ -25,6 +25,7 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_ecdh_init(ChiakiECDH *ecdh)
 	memset(ecdh, 0, sizeof(ChiakiECDH));
 #ifdef CHIAKI_LIB_ENABLE_MBEDTLS
 #define CHECK(err) if((err) != 0) { \
+	mbedtls_entropy_free(&entropy); \
 	chiaki_ecdh_fini(ecdh); \
 	return CHIAKI_ERR_UNKNOWN; }
 	// mbedtls ecdh example:
@@ -35,7 +36,11 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_ecdh_init(ChiakiECDH *ecdh)
 	mbedtls_entropy_init(&entropy);
 	// init local key
 	//mbedtls_ecp_keypair_init(&ecdh->key_local);
-	mbedtls_ecdh_init(&ecdh->ctx);
+	mbedtls_ecp_group_init(&ecdh->ctx.grp);
+	mbedtls_mpi_init(&ecdh->ctx.d);
+	mbedtls_ecp_point_init(&ecdh->ctx.Q);
+	mbedtls_ecp_point_init(&ecdh->ctx.Qp);
+	mbedtls_mpi_init(&ecdh->ctx.z);
 	// init ecdh group
 	// keep rng context in ecdh for later reuse
 	mbedtls_ctr_drbg_init(&ecdh->drbg);
@@ -71,7 +76,11 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_ecdh_init(ChiakiECDH *ecdh)
 CHIAKI_EXPORT void chiaki_ecdh_fini(ChiakiECDH *ecdh)
 {
 #ifdef CHIAKI_LIB_ENABLE_MBEDTLS
-	mbedtls_ecdh_free(&ecdh->ctx);
+	mbedtls_ecp_group_free(&ecdh->ctx.grp);
+	mbedtls_mpi_free(&ecdh->ctx.d);
+	mbedtls_ecp_point_free(&ecdh->ctx.Q);
+	mbedtls_ecp_point_free(&ecdh->ctx.Qp);
+	mbedtls_mpi_free(&ecdh->ctx.z);
 	mbedtls_ctr_drbg_free(&ecdh->drbg);
 #else
 	EC_KEY_free(ecdh->key_local);
@@ -199,7 +208,6 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_ecdh_derive_secret(ChiakiECDH *ecdh, uint8_
 		goto error;} \
 	} while(0)
 
-	GOTO_ERROR(mbedtls_mpi_lset(&ecdh->ctx.Qp.Z, 1));
 	// load Qp point form remote PK
 	GOTO_ERROR(mbedtls_ecp_point_read_binary(&ecdh->ctx.grp,
 		&ecdh->ctx.Qp, remote_key, remote_key_size));

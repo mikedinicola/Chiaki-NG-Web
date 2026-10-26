@@ -174,7 +174,7 @@ if(CHIAKI_LIB_ENABLE_MBEDTLS)
 		FetchContent_Declare(
 			mbedtls
 			GIT_REPOSITORY https://github.com/Mbed-TLS/mbedtls.git
-			GIT_TAG 8b3f26a5ac38d4fdccbc5c5366229f3e01dafcc0 # v2.28.0
+			GIT_TAG 068ff080b369adfac81509f9b57b2afabaf82dc5 # maintained Mbed TLS 3.6.7 LTS
 			GIT_PROGRESS TRUE
 		)
 		FetchContent_MakeAvailable(mbedtls)
@@ -195,8 +195,7 @@ if(CHIAKI_ENABLE_WASM AND CHIAKI_LIB_ENABLE_OPUS)
 	FetchContent_Declare(
 		opus
 		GIT_REPOSITORY https://github.com/xiph/opus.git
-		GIT_TAG v1.5.2
-		GIT_SHALLOW TRUE
+		GIT_TAG 22244de5a79bd1d6d623c32e72bf1954b56235be # Opus 1.6.1
 	)
 	FetchContent_MakeAvailable(opus)
 	# libopus ships include/opus.h; Chiaki includes <opus/opus.h> like distro packages.

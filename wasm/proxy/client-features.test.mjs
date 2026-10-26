@@ -3,6 +3,12 @@ import { test } from "node:test";
 import "../www/username-lookup.js";
 import "../www/pc-controls.js";
 import "../www/video-renderer.js";
+import { isPatchedEmbeddedNode } from "../electron/runtime-security.mjs";
+
+test("Electron refuses embedded Node releases preceding the security baseline", () => {
+	for (const version of ["24.22.0", "22.23.3", "26.12.0", "20.99.0", "bad"]) assert.equal(isPatchedEmbeddedNode(version), false);
+	for (const version of ["24.22.1", "24.23.0", "22.23.4", "26.12.1"]) assert.equal(isPatchedEmbeddedNode(version), true);
+});
 
 test("video statistics measure received payload, decoded frames and unrecovered loss", () => {
 	const meter = ChiakiVideo.createStats(); meter.reset(1000);

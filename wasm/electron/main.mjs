@@ -3,6 +3,13 @@ import { app, BrowserWindow, Menu, dialog, shell } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { isPatchedEmbeddedNode } from "./runtime-security.mjs";
+
+if (!isPatchedEmbeddedNode(process.versions.node)) {
+	dialog.showErrorBox("Electron security update required",
+		`This Electron build bundles Node ${process.versions.node}, which is outside this project's verified security floor. Use scripts/run-web.ps1 with the pinned Node runtime until a patched stable Electron release is available.`);
+	app.exit(1);
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

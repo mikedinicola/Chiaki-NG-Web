@@ -20,7 +20,7 @@ No protocol, console registration key, or account database migration is needed.
 
 ## Run
 
-Requirements: Node.js 24+, stable Rust, and the existing WASM build dependencies
+Requirements: Node.js 26.12.1+, stable Rust, and the existing WASM build dependencies
 listed in [`../Build_WASM.md`](../Build_WASM.md). On Windows, Rust's MSVC target
 also needs the Visual Studio C++ build tools.
 

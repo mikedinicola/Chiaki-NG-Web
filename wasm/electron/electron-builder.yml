@@ -8,6 +8,7 @@ directories:
   buildResources: build
 files:
   - main.mjs
+  - runtime-security.mjs
   - preload.cjs
   - package.json
 extraResources:

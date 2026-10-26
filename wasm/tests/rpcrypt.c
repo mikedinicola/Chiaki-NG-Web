@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 #include <chiaki/rpcrypt.h>
+#include <chiaki/ecdh.h>
 #include <mbedtls/md.h>
 #include <assert.h>
 #include <stdio.h>
@@ -38,6 +39,20 @@ int main(void)
     chiaki_rpcrypt_init_auth(&crypt, CHIAKI_TARGET_PS4_9, nonce, morning);
     assert(chiaki_rpcrypt_encrypt(&crypt, 0x0102030405060708ULL, data, data, sizeof(data)) == CHIAKI_ERR_SUCCESS);
     assert(memcmp(data, cipher, sizeof(data)) == 0);
-    puts("WASM registration IV and encryption vectors passed");
+    ChiakiECDH alice, bob;
+    uint8_t alice_pub[65], bob_pub[65], alice_sig[32], bob_sig[32];
+    uint8_t alice_secret[32], bob_secret[32], handshake[16] = {0};
+    size_t alice_pub_size = 65, bob_pub_size = 65, alice_sig_size = 32, bob_sig_size = 32;
+    assert(chiaki_ecdh_init(&alice) == CHIAKI_ERR_SUCCESS);
+    assert(chiaki_ecdh_init(&bob) == CHIAKI_ERR_SUCCESS);
+    assert(chiaki_ecdh_get_local_pub_key(&alice, alice_pub, &alice_pub_size, handshake, alice_sig, &alice_sig_size) == CHIAKI_ERR_SUCCESS);
+    assert(chiaki_ecdh_get_local_pub_key(&bob, bob_pub, &bob_pub_size, handshake, bob_sig, &bob_sig_size) == CHIAKI_ERR_SUCCESS);
+    assert(chiaki_ecdh_derive_secret(&alice, alice_secret, bob_pub, bob_pub_size, handshake, bob_sig, bob_sig_size) == CHIAKI_ERR_SUCCESS);
+    assert(chiaki_ecdh_derive_secret(&bob, bob_secret, alice_pub, alice_pub_size, handshake, alice_sig, alice_sig_size) == CHIAKI_ERR_SUCCESS);
+    assert(memcmp(alice_secret, bob_secret, 32) == 0);
+    memset(bob_pub, 0, sizeof(bob_pub));
+    assert(chiaki_ecdh_derive_secret(&alice, alice_secret, bob_pub, bob_pub_size, handshake, bob_sig, bob_sig_size) != CHIAKI_ERR_SUCCESS);
+    chiaki_ecdh_fini(&alice); chiaki_ecdh_fini(&bob);
+    puts("WASM registration/encryption vectors and ECDH exchange passed");
     return 0;
 }
