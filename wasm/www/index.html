@@ -69,6 +69,13 @@
 		</header>
 
 		<main class="welcome" id="welcome">
+			<section id="connection-error" class="connection-error hidden" role="alert">
+				<strong data-i18n="connection.title">Connection stopped</strong>
+				<p id="connection-error-text"></p>
+				<p data-i18n="connection.hint">Close any other Chiaki, Remote Play, or browser stream using this console, then try again.</p>
+				<button type="button" id="connection-retry" data-i18n="connection.retry">Try again</button>
+				<button type="button" id="connection-dismiss" data-i18n="connection.dismiss">Dismiss</button>
+			</section>
 			<img class="watermark" src="icons/chiaking-logo.svg" alt="">
 			<ul id="hosts" class="host-list"></ul>
 			<button class="fab" id="btn-discover" type="button" data-i18n-title="discovery" title="Discovery" aria-pressed="false">
@@ -205,7 +212,7 @@
 					</div>
 					<div class="form-row">
 						<label data-i18n="video.preset">Render Preset:</label>
-						<select id="s-preset">
+						<select id="s-preset" disabled>
 							<option value="0" data-i18n="preset.fast">Fast</option>
 							<option value="1" data-i18n="preset.default">Default</option>
 							<option value="2" selected data-i18n="preset.hq">High Quality</option>
@@ -215,6 +222,7 @@
 						</select>
 						<span class="def" data-i18n="video.presetDef">(High Quality)</span>
 					</div>
+					<p class="hint" data-i18n="video.legacyPreset">Legacy render presets are unavailable in this browser renderer. Use Stream → Sharpening and Noise reduction.</p>
 				</div>
 				<div class="tab-page hidden" data-page="stream">
 					<div class="form-row">
@@ -617,6 +625,7 @@
 		<div class="modal-card help-card">
 			<div class="help-modal-bar">
 				<h3 data-i18n="help.title">Aide</h3>
+				<button type="button" id="help-add-console" data-i18n="add.title">Add a PlayStation</button>
 				<button type="button" class="help-close" id="help-close" data-i18n="help.close">Fermer</button>
 			</div>
 			<iframe id="help-frame" title="Documentation"></iframe>

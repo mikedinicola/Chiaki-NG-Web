@@ -4,7 +4,7 @@
 
 <p align="center"><strong>Play your PS4 or PS5 on your PC, through a web browser.</strong><br>Your console runs the game. Your PC shows the picture and sends your controls back.</p>
 
-<p align="center"><a href="docs/GETTING_STARTED.md"><strong>Get started</strong></a> · <a href="#take-a-look">Screenshots</a> · <a href="#make-it-look-and-feel-right">Picture &amp; controls</a> · <a href="docs/BROWSER_SETUP.md">Full guide</a></p>
+<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.1"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
 
 <p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml"><img src="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml/badge.svg" alt="Browser checks on Windows and Linux"></a></p>
 
@@ -28,7 +28,7 @@ Start with your **PC and PlayStation on the same home network**. The console mus
 
 Follow the **[Windows first-time setup guide](docs/GETTING_STARTED.md)**. It explains what to install, which commands to copy, and what to expect on screen.
 
-This repository contains the source code. First-time setup includes building the streaming component; there is currently no ready-to-run installer for this fork. The guide separates that one-time work from opening the app each day.
+The **Windows installer** includes everything needed to run the browser edition. Install it, open **Chiaki-NG Web** from Start, and follow the first-run guide. No Git, Rust, Python or separate Node installation is needed. A portable ZIP is available too. This first installer release is an unsigned community preview for Windows 10/11 x64.
 
 Already comfortable with development tools? Use the [complete build and configuration guide](docs/BROWSER_SETUP.md).
 
@@ -43,7 +43,9 @@ Your **PSN username**, **account ID**, and **pairing code** are different things
 
 ### 3 · Open it next time
 
-In PowerShell, from the project folder:
+Open **Chiaki-NG Web** from the Start menu or desktop shortcut. Its tray icon keeps the local server running; choose **Quit and stop server** there when finished.
+
+For a source-code checkout, run this in PowerShell from the project folder:
 
 ```powershell
 .\scripts\run-web.ps1 -NoBuild -Port 8090
@@ -52,6 +54,8 @@ In PowerShell, from the project folder:
 Keep that terminal open and visit **http://127.0.0.1:8090/**. That address means “this PC.” Closing the terminal stops the server.
 
 ## Take a look
+
+<p align="center"><img src="docs/images/first-run-guide.jpg" alt="Offline first-run guide with pairing, controls, picture settings and troubleshooting" width="1000"><br><em>The guide opens automatically for new users and is always available from the ? button.</em></p>
 
 Fresh screenshots from this fork. The pairing picture uses an **example address**; account and code fields are empty. Console addresses and IDs are masked.
 
@@ -122,6 +126,8 @@ Use the browser edition for now. The optional Electron 45.0.0 build is blocked b
 ## More help
 
 - **[First-time setup](docs/GETTING_STARTED.md)** — a plain-language Windows walkthrough.
+- **[Controls and every settings tab](docs/USER_GUIDE.md)** — the complete first-run guide.
+- **[Windows installer](docs/WINDOWS_INSTALLER.md)** — installation, portable use, data storage and uninstall.
 - **[Full browser guide](docs/BROWSER_SETUP.md)** — pairing, quality, controls and troubleshooting.
 - **[Build instructions](wasm/Build_WASM.md)** — Windows and Linux build details.
 - **[Security audit](docs/SECURITY_AUDIT.md)** — checked versions, dependencies and limitations.

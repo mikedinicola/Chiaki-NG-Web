@@ -305,3 +305,41 @@ test("native process exits when the parent liveness pipe closes", {
 	child.stdin.end();
 	assert.equal((await exited)[0], 0);
 });
+
+test("desktop-managed server exposes its identity and exits when launcher stdin closes", {
+	skip: !fs.existsSync(binary) && "Build the Rust relay first", timeout: 15000
+}, async (t) => {
+	const dbDir = fs.mkdtempSync(path.join(os.tmpdir(), "chiaki-managed-test-"));
+	const child = spawn(process.execPath, [fileURLToPath(new URL("./server.mjs", import.meta.url))], {
+		windowsHide: true, stdio: ["pipe", "pipe", "pipe"],
+		env: { ...process.env, CHIAKI_ENV_FILE: path.join(dbDir, "absent.env"), CHIAKI_DB_DIR: dbDir,
+			CHIAKI_AUTH_ENABLED: "false", CHIAKI_WASM_PORT: "0", CHIAKI_WASM_BIND: "127.0.0.1",
+			CHIAKI_WASM_LAN_HTTPS: "false", CHIAKI_DESKTOP_MANAGED: "1",
+			CHIAKI_RELAY_BACKEND: "rust", CHIAKI_RELAY_BIN: binary }
+	});
+	t.after(async () => {
+		if (child.exitCode == null) { child.kill(); await once(child, "exit"); }
+		assert.equal(path.dirname(dbDir), os.tmpdir());
+		fs.rmSync(dbDir, { recursive: true, force: true });
+	});
+	let output = "";
+	child.stderr.resume();
+	const port = await new Promise((resolve, reject) => {
+		const timer = setTimeout(() => reject(new Error("Managed startup timed out")), 10000);
+		child.once("exit", () => { clearTimeout(timer); reject(new Error("Managed server exited early")); });
+		child.stdout.on("data", (data) => {
+			output += data;
+			const match = output.match(/http:\/\/127\.0\.0\.1:(\d+)\//);
+			if (match) { clearTimeout(timer); resolve(Number(match[1])); }
+		});
+	});
+	const health = await fetch(`http://127.0.0.1:${port}/health`);
+	assert.equal(health.headers.get("x-chiaki-app"), "chiaki-ng-web");
+	assert.equal(await health.text(), "ok");
+	const guide = await fetch(`http://127.0.0.1:${port}/first-run.html`);
+	assert.equal(guide.status, 200);
+	assert.match(await guide.text(), /All controls at a glance/);
+	const exited = once(child, "exit");
+	child.stdin.end();
+	assert.equal((await exited)[0], 0);
+});

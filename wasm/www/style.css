@@ -1086,6 +1086,9 @@ kbd {
 	border-left: 1px solid #4d5664; box-shadow: -12px 0 35px #0006;
 	overflow-y: auto; touch-action: pan-y; pointer-events: auto;
 }
+.connection-error { position: relative; z-index: 2; margin: 20px; padding: 20px; border: 1px solid #f6ad55; border-radius: 10px; background: #30251d; max-width: 740px; }
+.connection-error p { line-height: 1.5; }
+.connection-error button { padding: 8px 14px; margin-right: 8px; }
 .controls-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .controls-heading h2 { margin: 0; font-size: 20px; }
 .controls-heading button { border: 0; background: transparent; color: var(--material-accent); cursor: pointer; padding: 10px 0; }

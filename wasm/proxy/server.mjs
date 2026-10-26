@@ -1385,7 +1385,7 @@ async function handleApi(req, res, reqUrl) {
 
 function handleRequest(req, res) {
 	if (req.url === "/health") {
-		res.writeHead(200, { "Content-Type": "text/plain" });
+		res.writeHead(200, { "Content-Type": "text/plain", "X-Chiaki-App": "chiaki-ng-web", "Cache-Control": "no-store" });
 		res.end("ok");
 		return;
 	}
@@ -1677,7 +1677,21 @@ function ranAsCli() {
 }
 
 if (ranAsCli()) {
-	startServers().catch((err) => {
+	startServers().then((server) => {
+		if (process.env.CHIAKI_DESKTOP_MANAGED !== "1") return;
+		let stopping = false;
+		const stop = () => {
+			if (stopping) return;
+			stopping = true;
+			const timer = setTimeout(() => process.exit(0), 1500);
+			timer.unref();
+			server.close().finally(() => process.exit(0));
+		};
+		process.stdin.on("end", stop);
+		process.stdin.setEncoding("utf8");
+		process.stdin.on("data", (data) => { if (data.includes("shutdown")) stop(); });
+		process.stdin.resume();
+	}).catch((err) => {
 		console.error(err);
 		process.exit(1);
 	});

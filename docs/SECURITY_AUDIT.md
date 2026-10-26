@@ -1,5 +1,15 @@
 # Dependency and toolchain audit — 2026-10-26
 
+## Windows browser installer
+
+The new native Windows tray launcher bundles the pinned Node **26.12.1** runtime,
+the Rust relay built with a static C runtime, and the compiled WASM core. It does
+not use Electron. The optional Electron exception below remains in force.
+The installer binds the server to loopback, stores user data separately, and
+stops an owned server through a parent input pipe. Source-only allowlists exclude
+developer environment/database files from the package. See
+[installer design and verification](WINDOWS_INSTALLER.md).
+
 This is a point-in-time audit of the browser edition and optional Electron
 packaging tools, not a claim that the whole upstream project is vulnerability
 free. Native Qt, Android and Switch dependency trees were not comprehensively

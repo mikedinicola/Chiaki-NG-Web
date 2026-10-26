@@ -62,4 +62,5 @@ wasm/build/
 wasm/proxy/certs/*.pem
 wasm/proxy/certs/*.key
 /.tools/
+/dist-browser/
 /wasm/relay-rust/target/

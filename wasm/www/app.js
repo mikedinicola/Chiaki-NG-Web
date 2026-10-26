@@ -101,8 +101,7 @@ function uiLanguage() {
 }
 
 function helpDocsUrl() {
-	const lang = uiLanguage() === "en" ? "en" : "fr";
-	return `doc/${lang}/index.html`;
+	return "first-run.html";
 }
 
 function openHelpModal() {
@@ -114,6 +113,7 @@ function openHelpModal() {
 }
 
 function closeHelpModal() {
+	localStorage.setItem("chiaki-first-run-guide-v1", "seen");
 	const modal = $("help-modal");
 	const frame = $("help-frame");
 	if (modal) modal.classList.add("hidden");
@@ -5553,26 +5553,42 @@ async function wakeAndWait(host, seq) {
 	return false;
 }
 
+let connectionErrorHost = null;
+function connectionNotice(message, host) {
+	connectionErrorHost = host || null;
+	const safeMessage = host?.addr ? String(message).replaceAll(host.addr, t("connection.console")) : String(message);
+	$("connection-error-text").textContent = safeMessage;
+	$("connection-error").classList.remove("hidden");
+	$("connection-retry").disabled = !host;
+}
+function clearConnectionNotice() {
+	connectionErrorHost = null;
+	$("connection-error").classList.add("hidden");
+}
 async function failConnect(seq, message) {
-	retryingConnect = false;
-	ignoreQuit = false;
-		streaming = false;
-		setStreamOverlay(message, "error");
-		log(message, 0);
-		shareOnStreaming(false);
-	await sleep(4000);
 	if (seq !== connectSeq) return;
+	const failedHost = activeHost;
+	retryingConnect = false;
+	ignoreQuit = true;
+	streaming = false;
+	connectionNotice(message, failedHost);
+	if (api.sessionStop) api.sessionStop();
+	log(message, 0);
+	shareOnStreaming(false);
+	resetVideoDecoder();
 	activeHost = null;
 	streamTitleName = "";
 	appliedStreamKey = "";
 	setStreamOverlay("");
-	showView("welcome");
+	await showView("welcome");
 	pauseDiscoveryForStream(false);
 	renderHosts();
+	ignoreQuit = false;
 }
 
 async function startStream(host) {
 	if (connecting || streaming) return;
+	clearConnectionNotice();
 	connecting = true;
 	activeHost = host;
 	streamTitleName = (host.name && host.name !== host.addr) ? host.name : t("title.stream");
@@ -5593,17 +5609,7 @@ async function startStream(host) {
 		const wasmOk = await ensureWasmRuntime();
 		if (seq !== connectSeq) return;
 		if (!wasmOk || typeof api.sessionStart !== "function") {
-			log(t("log.wasmFailed"), 0);
-			setStreamOverlay(t("log.wasmFailed"), "error");
-			await sleep(2500);
-			if (seq !== connectSeq) return;
-			activeHost = null;
-			streamTitleName = "";
-			appliedStreamKey = "";
-			setStreamOverlay("");
-			showView("welcome");
-			pauseDiscoveryForStream(false);
-			renderHosts();
+			await failConnect(seq, t("log.wasmFailed"));
 			return;
 		}
 		if (!isFullscreen() && !settings.losslessScaling) enterStreamFullscreen();
@@ -6224,6 +6230,9 @@ function bindUi() {
 	};
 
 	$("btn-help").onclick = () => openHelpModal();
+	$("help-add-console").onclick = () => { closeHelpModal(); $("btn-add").click(); };
+	$("connection-dismiss").onclick = clearConnectionNotice;
+	$("connection-retry").onclick = () => { const host = connectionErrorHost; if (host) startStream(host); };
 	$("help-close")?.addEventListener("click", () => closeHelpModal());
 	$("help-modal")?.addEventListener("click", (e) => {
 		if (e.target.id === "help-modal") closeHelpModal();
@@ -6813,7 +6822,8 @@ function bindModule() {
 		if (type === "quit") {
 			streaming = false;
 			closeSessionGate({ type: "quit", code, detail });
-			if (ignoreQuit || connecting || retryingConnect) return;
+			if (ignoreQuit || connecting || retryingConnect || connectionErrorHost) return;
+			connectionNotice(t("log.sessionEnded", { detail: quitLabel(code, detail) }), activeHost);
 			log(t("log.sessionEnded", { detail: quitLabel(code, detail) }));
 			connecting = false;
 			wakingAddrs.clear();
@@ -7027,6 +7037,7 @@ async function boot() {
 	renderHosts();
 	loadConsoleIcons().then(() => renderHosts()).catch(() => {});
 	setBootScreen(false);
+	if (!savedHosts().length && !localStorage.getItem("chiaki-first-run-guide-v1")) openHelpModal();
 	scheduleWasmWarmup();
 }
 

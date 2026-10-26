@@ -1,5 +1,9 @@
 # Browser edition: install, pair, tune and verify
 
+**Windows users:** start with the [installer guide](GETTING_STARTED.md). It bundles
+the runtime, relay and streaming core. The source-build instructions below are
+for developers. For every control and settings tab, see the [user guide](USER_GUIDE.md).
+
 This fork keeps Remote Play in a browser. The streaming core is Chiaki C compiled
 to WebAssembly; a Rust sidecar handles native TCP/UDP. Node serves the UI,
 authentication, account storage and WebSocket transport. It is not a full Rust

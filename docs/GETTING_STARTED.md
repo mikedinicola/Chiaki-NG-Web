@@ -1,4 +1,34 @@
-# Your first stream, step by step
+# Install and start playing
+
+## Recommended: the Windows installer
+
+1. Download **Chiaki-NG-Web-Setup-1.10.1-x64.exe** from the [Windows browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.1).
+2. Run it and follow the setup wizard. It installs for your Windows account; a desktop shortcut is optional.
+3. Open **Chiaki-NG Web** from Start. Your browser opens and a first-run guide appears for a new browser profile.
+4. Keep your PlayStation on and on the same network. Choose **Add a PlayStation**, then follow the pairing instructions.
+5. Select your saved console to play. The **?** button always reopens the guide.
+
+**Everything needed is included:** Node, the Rust relay and the compiled streaming core. You do not need development tools or a separate Node installation. The portable ZIP works by extracting all files and opening **Chiaki-NG Web.exe**.
+
+This community preview is unsigned and targets Windows 10/11 x64. Download from this repository's release and compare the published SHA-256 checksums if needed.
+
+### Next time
+
+Open **Chiaki-NG Web** from Start. Keep its tray icon running while playing. Use the tray menu to reopen the browser or guide, or choose **Quit and stop server** when finished.
+
+Close any development server already using port 8090 before switching to the installed app. Use the same browser profile to retain settings and pairings. Closing a tab releases its stream; a second stream can block the next connection.
+
+### Learn the controls and settings
+
+The [complete user guide](USER_GUIDE.md) explains all PC-preset keys, controller and touch input, mouse sensitivity, every settings tab, picture quality, Lossless Scaling and troubleshooting. It is also included offline inside the app.
+
+[Installer details, data storage and uninstall](WINDOWS_INSTALLER.md) · [Advanced browser setup](BROWSER_SETUP.md)
+
+## Prefer to build from source?
+
+<details>
+<summary>Show the developer setup instructions</summary>
+
 
 This guide is for a **Windows PC** and a PS4 or PS5 on the same home network.
 You will run a small server on the PC, open its page in a browser, and pair your
@@ -137,3 +167,5 @@ You only need to rebuild after updating the code or changing build dependencies.
 For a useful bug report, describe the step that failed and the message shown.
 Hide console addresses, IDs, PSN account IDs and pairing codes in screenshots.
 Never attach `.env`, database files or exported registration keys.
+
+</details>
