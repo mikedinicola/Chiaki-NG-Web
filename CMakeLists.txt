@@ -61,6 +61,8 @@ if(EMSCRIPTEN)
 endif()
 
 if(CHIAKI_ENABLE_WASM)
+	# Keep developer machine paths out of assertions and debug metadata.
+	add_compile_options("-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
 	message(STATUS "Chiaki WASM client enabled (LAN Remote Play via local POSIX-net proxy)")
 	# mbedTLS 2.28 / older CMakeLists are rejected by CMake 4.x without this.
 	set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)

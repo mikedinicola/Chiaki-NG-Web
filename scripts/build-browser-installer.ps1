@@ -24,11 +24,16 @@ try {
         $cargoPath = Join-Path $env:CARGO_HOME 'bin/cargo.exe'
     } else { $cargoPath = $cargo.Source }
     $previousRustflags = $env:RUSTFLAGS
+    $previousEncodedRustflags = $env:CARGO_ENCODED_RUSTFLAGS
     try {
-        $env:RUSTFLAGS = '-C target-feature=+crt-static'
+        # Encoded arguments preserve spaces in checkout paths.
+        $env:CARGO_ENCODED_RUSTFLAGS = @('-C', 'target-feature=+crt-static', "--remap-path-prefix=$projectDir=.", "--remap-path-prefix=$($projectDir.Replace('\','/'))=.") -join [char]31
         & $cargoPath build --release --locked --target x86_64-pc-windows-msvc --target-dir .tools/relay-windows-static --manifest-path wasm/relay-rust/Cargo.toml
         if ($LASTEXITCODE -ne 0) { throw 'Static Rust relay build failed.' }
-    } finally { $env:RUSTFLAGS = $previousRustflags }
+    } finally {
+        $env:RUSTFLAGS = $previousRustflags
+        $env:CARGO_ENCODED_RUSTFLAGS = $previousEncodedRustflags
+    }
     $stage = Join-Path $projectDir ('.tools/browser-package-' + [Guid]::NewGuid().ToString('N'))
     $payload = Join-Path $stage 'payload'
     foreach ($dir in @('runtime','core','proxy','www','documentation','LICENSES')) { New-Item -ItemType Directory -Path "$payload/$dir" -Force | Out-Null }
