@@ -2,7 +2,7 @@
 
 ## Recommended: the Windows installer
 
-1. Download **Chiaki-NG-Web-Setup-1.10.1-x64.exe** from the [Windows browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.1).
+1. Download **Chiaki-NG-Web-Setup-1.10.2-x64.exe** from the [Windows browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.2).
 2. Run it and follow the setup wizard. It installs for your Windows account; a desktop shortcut is optional.
 3. Open **Chiaki-NG Web** from Start. Your browser opens and a first-run guide appears for a new browser profile.
 4. Keep your PlayStation on and on the same network. Choose **Add a PlayStation**, then follow the pairing instructions.

@@ -496,5 +496,8 @@
 	"quality.noGpu": "Indisponible (rendu 2D)",
 	"quality.limit": "0 désactive le filtre. Agrandir un flux 1080p sur un écran 1440p/4K ne recrée pas les détails natifs. Évitez de cumuler ce filtre avec celui de Lossless Scaling.",
 	"keys.mouseDeadzone": "Compensation de zone morte du jeu :",
-	"keys.mouseTuning": "Adaptez la compensation à la zone morte du stick droit ; réduisez-la si la visée saute. Réduisez l'accélération de visée dans le jeu. Le mouvement s'arrête sous 24 ms ; la vitesse maximale du stick reste applicable. Mode PC : B = PS, N = Partager."
+	"keys.mouseTuning": "Adaptez la compensation à la zone morte du stick droit ; réduisez-la si la visée saute. Réduisez l'accélération de visée dans le jeu. Le mouvement s'arrête sous 24 ms ; la vitesse maximale du stick reste applicable. Mode PC : B = PS, N = Partager.",
+	"quality.source": "Image source / faible latence",
+	"quality.sourceHint": "Préréglage source : 1080p60 H.265 à 40 Mbps, décodage matériel, sans netteté ni débruitage. Redémarrez le flux. Désactivez la génération externe pour diagnostiquer les blocages.",
+	"quality.pipeline": "Décodeur : {pending} en attente · dernier {ms} ms · reprises {recoveries} · ignorées {skipped}."
 }

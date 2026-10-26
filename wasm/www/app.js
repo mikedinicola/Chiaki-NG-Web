@@ -243,7 +243,7 @@ let decoderReady = false;
 let decoderMime = "avc1.640028";
 let decoderSetup = null;
 let decoderFailed = false;
-let gotKeyframe = false;
+let videoDecoderEpoch = 0;
 let lastIdrAt = 0;
 let lastDecodeErrAt = 0;
 let videoTs = 0;
@@ -3376,12 +3376,12 @@ function requestIdrThrottled() {
 }
 
 function resetVideoDecoder() {
+	videoDecoderEpoch++;
 	videoStats.reset(performance.now());
 	$("controls-stream-stats").textContent = t("quality.statsWaiting");
 	decoderSetup = null;
 	decoderReady = false;
 	decoderFailed = false;
-	gotKeyframe = false;
 	configPending = [];
 	videoTs = 0;
 	lastIdrAt = 0;
@@ -3397,7 +3397,7 @@ function hwPreference() {
 	return "no-preference";
 }
 
-async function configureDecoder() {
+async function configureDecoder(epoch) {
 	const hevc = codec === 1;
 	if (typeof VideoDecoder !== "function") throw new Error(t("log.webcodecsMissing"));
 	const sps = configPending.find((n) => (hevc ? hevcNalType(n) === 33 : avcNalType(n) === 7));
@@ -3439,7 +3439,10 @@ async function configureDecoder() {
 	chosen.codedHeight = codedH;
 
 	decoderMime = chosen.codec;
-	decoder = new VideoDecoder({
+	if (epoch !== videoDecoderEpoch || !streaming) return;
+	decoder = ChiakiVideoPipeline.create({
+		config: chosen,
+		requestKeyframe: requestIdrThrottled,
 		output: (frame) => {
 			const d = videoFrameDest(frame);
 			if (canvas.width !== d.sw || canvas.height !== d.sh) {
@@ -3459,12 +3462,8 @@ async function configureDecoder() {
 				lastDecodeErrAt = now;
 				log("Video decoder: " + err.message, 0);
 			}
-			decoderReady = false;
-			gotKeyframe = false;
-			requestIdrThrottled();
 		}
 	});
-	decoder.configure(chosen);
 	decoderReady = true;
 	log(t("log.videoCodec", { codec: decoderMime }));
 }
@@ -3491,7 +3490,7 @@ async function pushVideo(ptr, size, lost, recovered) {
 	if (!size || decoderFailed || !streaming || videoDisabled()) return;
 	videoStats.receive(size, lost, recovered);
 	if (lost > 0 && !recovered) {
-		gotKeyframe = false;
+		decoder?.recover();
 		requestIdrThrottled();
 	}
 	const sample = Module.HEAPU8.slice(ptr, ptr + size);
@@ -3499,29 +3498,26 @@ async function pushVideo(ptr, size, lost, recovered) {
 	const nals = parseAnnexB(sample);
 	if (!nals.length) return;
 	collectConfig(nals, hevc);
+	const epoch = videoDecoderEpoch;
 	if (!decoderReady) {
 		if (!hasParamSets(hevc)) {
 			requestIdrThrottled();
 			return;
 		}
 		if (!decoderSetup) {
-			decoderSetup = configureDecoder().catch((e) => {
+			decoderSetup = configureDecoder(epoch).catch((e) => {
+				if (epoch !== videoDecoderEpoch) return;
 				decoderFailed = true;
 				decoderSetup = null;
 				log(e.message || t("log.videoUnsupported"), 0);
 			});
 		}
 		await decoderSetup;
-		if (!decoderReady) return;
+		if (!decoderReady || epoch !== videoDecoderEpoch || !streaming) return;
 	}
 	const vcl = nals.filter((n) => !isConfigNal(n, hevc) && !isAudNal(n, hevc));
 	if (!vcl.length) return;
 	const key = vcl.some((n) => isKeyNal(n, hevc));
-	if (!key && !gotKeyframe) {
-		requestIdrThrottled();
-		return;
-	}
-	if (decoder && decoder.decodeQueueSize > 3 && !key) return;
 	try {
 		const step = Math.round(1e6 / Math.max(30, Number(settings.fps) || 60));
 		videoTs += step;
@@ -3530,7 +3526,6 @@ async function pushVideo(ptr, size, lost, recovered) {
 			timestamp: videoTs,
 			data: packLengthPrefixed(vcl)
 		}));
-		if (key) gotKeyframe = true;
 	} catch (e) {
 		const now = performance.now();
 		if (now - lastDecodeErrAt > 2000) {
@@ -6629,6 +6624,16 @@ function bindUi() {
 		$("s-decoder").value = "prefer-hardware";
 		applySettingsNow();
 	};
+	$("quality-source").onclick = () => {
+		$("s-resolution").value = "4";
+		$("s-fps").value = "60";
+		$("s-codec").value = "1";
+		$("s-bitrate").value = "40000";
+		$("s-decoder").value = "prefer-hardware";
+		$("s-sharpen").value = "0"; $("s-denoise").value = "0";
+		$("s-lossless-scaling").checked = false;
+		applySettingsNow();
+	};
 	$("quality-fog").onclick = () => {
 		$("s-resolution").value = "4"; $("s-fps").value = "60";
 		$("s-codec").value = "1"; $("s-bitrate").value = "80000";
@@ -6640,10 +6645,11 @@ function bindUi() {
 		if (!streaming) return;
 		const stats = videoStats.sample(performance.now());
 		if (!stats) return;
+		const pipeline = decoder?.stats();
 		$("controls-stream-stats").textContent = t("quality.stats", {
 			target: (requestedBitrate / 1000).toFixed(0), actual: stats.mbps.toFixed(1),
 			fps: stats.fps.toFixed(0), lost: stats.lost, width: canvas.width, height: canvas.height
-		});
+		}) + (pipeline ? " " + t("quality.pipeline", { pending: pipeline.pending, ms: pipeline.decodeMs.toFixed(0), recoveries: pipeline.recoveries, skipped: pipeline.skipped }) : "");
 	}, 1000);
 	$("settings-view").addEventListener("input", () => { applySettingsNow(); });
 	$("s-language").addEventListener("change", () => { applySettingsNow(); });

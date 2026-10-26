@@ -6,8 +6,8 @@ It does not use Electron or its embedded runtime.
 
 ## Install
 
-1. Download `Chiaki-NG-Web-Setup-1.10.1-x64.exe` from the
-   [browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.1).
+1. Download `Chiaki-NG-Web-Setup-1.10.2-x64.exe` from the
+   [browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.2).
 2. Run it and follow the setup wizard. It installs for your Windows account;
    administrator access is not required. The desktop shortcut is optional.
 3. Open **Chiaki-NG Web** from Start. The first-run guide appears for a new

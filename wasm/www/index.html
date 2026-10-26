@@ -265,6 +265,8 @@
 						<span class="def" data-i18n="stream.codecDef">(H265)</span>
 					</div>
 					<button type="button" id="quality-lan" class="ghost" data-i18n="quality.lan">High quality LAN preset</button>
+					<button type="button" id="quality-source" class="ghost" data-i18n="quality.source">Source picture / low latency</button>
+					<p class="hint" data-i18n="quality.sourceHint">Source preset: 1080p60 H.265 at 40 Mbps, hardware decoding, no sharpening or denoising. Restart the stream after selecting it. Turn off external frame generation while diagnosing stalls.</p>
 					<button type="button" id="quality-fog" class="ghost" data-i18n="quality.fog">Clean fog / dark scenes preset</button>
 					<p class="hint" data-i18n="quality.hint">1080p, 60 fps, H.265, 50,000 kbps and mild GPU sharpening. Restart the stream to apply bitrate changes.</p>
 					<div class="form-row"><label for="s-sharpen" data-i18n="quality.sharpen">Sharpening:</label><input id="s-sharpen" type="range" min="0" max="100" step="5" value="35"><output id="s-sharpen-val">35%</output></div>
@@ -703,6 +705,7 @@
 	<script src="username-lookup.js"></script>
 	<script src="pc-controls.js"></script>
 	<script src="video-renderer.js"></script>
+	<script src="video-pipeline.js"></script>
 	<script src="app.js"></script>
 </body>
 </html>

@@ -52,6 +52,7 @@ globalThis.ChiakiVideo = Object.freeze({
 				 return mix(c,sum/weights,noise);
 				}
 				void main(){vec3 c=texture2D(video,uv).rgb;
+				if(amount<.001){gl_FragColor=vec4(clean(uv),1.);return;}
 				vec3 l=texture2D(video,uv-vec2(pixel.x,0.)).rgb,r=texture2D(video,uv+vec2(pixel.x,0.)).rgb;
 				vec3 u=texture2D(video,uv-vec2(0.,pixel.y)).rgb,d=texture2D(video,uv+vec2(0.,pixel.y)).rgb;
 				vec3 lo=min(c,min(min(l,r),min(u,d))),hi=max(c,max(max(l,r),max(u,d)));

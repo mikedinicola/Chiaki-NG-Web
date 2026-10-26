@@ -496,5 +496,8 @@
 	"quality.noGpu": "Unavailable (2D fallback)",
 	"quality.limit": "0 disables sharpening. Enlarging a 1080p stream on a 1440p/4K screen cannot restore native detail. Avoid stacking this with Lossless Scaling sharpening.",
 	"keys.mouseDeadzone": "Game dead-zone compensation:",
-	"keys.mouseTuning": "Match compensation to your game's right-stick dead zone; lower it if aiming jumps. Set the game's aim acceleration to minimum. Motion stops within 24 ms; controller turn-speed limits still apply. PC mode: B = PS, N = Share."
+	"keys.mouseTuning": "Match compensation to your game's right-stick dead zone; lower it if aiming jumps. Set the game's aim acceleration to minimum. Motion stops within 24 ms; controller turn-speed limits still apply. PC mode: B = PS, N = Share.",
+	"quality.source": "Source picture / low latency",
+	"quality.sourceHint": "Source preset: 1080p60 H.265 at 40 Mbps, hardware decoding, no sharpening or denoising. Keeps original stream detail with less GPU work. Restart the stream after selecting it. Turn off external frame generation while diagnosing stalls.",
+	"quality.pipeline": "Decoder: {pending} pending · last {ms} ms · resyncs {recoveries} · skipped {skipped}."
 }

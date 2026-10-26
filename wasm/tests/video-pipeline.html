@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><title>Live decoder regression test</title>
+<style>body{background:#161b22;color:#ddd;font:18px sans-serif}canvas{width:640px;height:360px}pre{white-space:pre-wrap}</style>
+<h1>Live decoder regression test</h1><p>Synthetic pictures only. No console connection.</p>
+<canvas id="picture" width="320" height="180"></canvas><pre id="report">Running…</pre>
+<script src="/video-pipeline.js"></script><script src="/video-renderer.js"></script>
+<script>
+(async()=>{
+ let pipeline,encoder;
+ try {
+  const canvas=document.querySelector('canvas'), ctx=canvas.getContext('2d');
+  const chunks=[];let config;
+  encoder=new VideoEncoder({output(chunk,metadata){chunks.push(chunk);if(metadata.decoderConfig)config=metadata.decoderConfig;},error(e){throw e;}});
+  encoder.configure({codec:'avc1.42001f',width:320,height:180,bitrate:1000000,framerate:60,latencyMode:'realtime',avc:{format:'avc'}});
+  for(let i=0;i<90;i++){
+   ctx.fillStyle=`hsl(${i*4} 70% 50%)`;ctx.fillRect(0,0,320,180);
+   const frame=new VideoFrame(canvas,{timestamp:i*16667});encoder.encode(frame,{keyFrame:i%10===0});frame.close();
+   if(i%5===0)await new Promise(r=>setTimeout(r,0));
+  }
+  await encoder.flush();encoder.close();encoder=null;
+  if(!config||chunks.length!==90)throw new Error('Encoder did not produce complete fixture');
+  let frames=0,requests=0;const errors=[];
+  pipeline=ChiakiVideoPipeline.create({config:{...config,optimizeForLatency:true},
+   output(frame){try{ctx.drawImage(frame,0,0);frames++;}finally{frame.close();}},
+   error(e){errors.push(e.message);},requestKeyframe(){requests++;}});
+  for(let i=0;i<chunks.length;i++){
+   if(i===35)pipeline.recover(); // Simulated packet loss mid-reference chain.
+   pipeline.decode(chunks[i]);await new Promise(r=>setTimeout(r,17));
+  }
+  await new Promise(r=>setTimeout(r,100));
+  const stats=pipeline.stats();pipeline.close();pipeline=null;
+  if(errors.length||frames<70||stats.pending||stats.recoveries!==1)throw new Error(JSON.stringify({frames,errors,stats}));
+  document.querySelector('#report').textContent='PASS: real H.264 WebCodecs output recovered after simulated packet loss. '+JSON.stringify({frames,requests,stats});
+ } catch(e){document.querySelector('#report').textContent='FAIL: '+e.stack;}
+ finally {pipeline?.close();encoder?.close();}
+})();
+</script>

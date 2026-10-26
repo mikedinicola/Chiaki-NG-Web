@@ -28,3 +28,8 @@ This guide is also included offline in the app. Open it with the **?** button.
 
 
 [Install the app](GETTING_STARTED.md) · [Advanced setup](BROWSER_SETUP.md)
+
+
+## Source picture and freeze recovery
+
+<p><strong>Source picture / low latency:</strong> use this Stream preset for the original decoded picture without sharpening or denoising. It requests 1080p60 H.265 at 40 Mbps and hardware decoding. Restart the stream after selecting it. Disable external Lossless Scaling frame generation while diagnosing spikes; the checkbox only prepares windowed mode and cannot stop the external app.</p><p>The backtick sidebar now shows pending decoder frames, the last receive-to-decode time, resynchronizations and skipped pictures. These measure the browser decode pipeline, not total console-to-screen latency. Temporary bursts retain compressed reference frames. A backlog of 8 frames or over 150 ms triggers a fresh keyframe; this can briefly interrupt the picture while recovery arrives. It prevents old video from accumulating, but cannot remove network loss or an overloaded GPU.</p>
