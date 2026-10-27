@@ -36,3 +36,12 @@ jobs:
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8100/api/state)" = 404
           docker run --rm --entrypoint turnserver coturn/coturn:4.18.0-r0 --version
           docker run --rm -e PLAY_DOMAIN=play.example.com -v "$PWD/wasm/online/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2.11.7-alpine caddy adapt --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
+      - name: Generated TURN configuration starts unprivileged and read-only
+        run: |
+          set -euo pipefail
+          trap 'docker rm -f chiaki-turn-test >/dev/null 2>&1 || true' EXIT
+          printf 'play.example.com\n127.0.0.1\n' | sudo bash wasm/online/deploy/setup.sh
+          docker run -d --name chiaki-turn-test --network none --user 65534:65534 --read-only --tmpfs /tmp:size=16m --cap-drop=ALL --security-opt=no-new-privileges -v "$PWD/wasm/online/deploy/secrets/turnserver.conf:/etc/turnserver.conf:ro" --entrypoint turnserver coturn/coturn:4.18.0-r0 -c /etc/turnserver.conf --listening-ip=127.0.0.1 --relay-ip=127.0.0.1
+          sleep 3
+          test "$(docker inspect -f '{{.State.Running}}' chiaki-turn-test)" = true
+          if docker logs chiaki-turn-test 2>&1 | grep -Ei 'unknown.*option|invalid.*option|cannot open config|cannot read config'; then exit 1; fi

@@ -29,6 +29,7 @@ no-auth-pings
 no-dynamic-ip-list
 no-dynamic-realms
 no-cli
+pidfile=/tmp/turnserver.pid
 no-tls
 no-dtls
 no-tcp-relay
