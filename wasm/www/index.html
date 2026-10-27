@@ -346,6 +346,10 @@
 									</div>
 								</div>
 								<label class="check-label"><input id="s-mouse-invert" type="checkbox"> <span data-i18n="keys.mouseInvert">Invert Y axis</span></label>
+								<label class="check-label"><input id="s-trackpad" type="checkbox"> <span data-i18n="keys.trackpadMode">Trackpad mode (Mac)</span></label>
+								<div class="mouse-field" id="s-trackpad-boost-row"><label for="s-trackpad-boost" data-i18n="keys.trackpadBoost">Trackpad boost:</label><div class="range-row"><input id="s-trackpad-boost" type="range" min="1" max="8" step="0.5" value="3"><output id="s-trackpad-boost-val">3×</output></div></div>
+								<div class="mouse-field" id="s-trackpad-momentum-row"><label for="s-trackpad-momentum" data-i18n="keys.trackpadMomentum">Momentum (glide after lift):</label><div class="range-row"><input id="s-trackpad-momentum" type="range" min="0" max="800" step="25" value="250"><output id="s-trackpad-momentum-val">250 ms</output></div></div>
+								<p class="hint" data-i18n="keys.trackpadHint">Trackpad mode keeps macOS pointer acceleration, multiplies motion by the boost and makes small swipes count for more. Press F8 twice after toggling it.</p>
 								<div class="mouse-field"><label for="s-mouse-deadzone" data-i18n="keys.mouseDeadzone">Game dead-zone compensation:</label><div class="range-row"><input id="s-mouse-deadzone" type="range" min="0" max="30" step="1" value="12"><output id="s-mouse-deadzone-val">12%</output></div></div>
 								<p class="hint" data-i18n="keys.mouseTuning">Use raw mouse capture. Match compensation to your game's right-stick dead zone; lower it if aiming jumps. Set the game's aim acceleration to minimum. Mouse stops within 24 ms; controller turn-speed limits still apply. PC mode: B = PS, N = Share.</p>
 								<p class="hint" data-i18n="keys.mouseHint">Click the video to lock the cursor in keyboard/mouse mode. The virtual pad keeps the cursor free. F8 toggles lock by default.</p>

@@ -211,6 +211,9 @@ const defaultSettings = {
 	mouseStick: "rs",
 	mouseSens: 80,
 	mouseDeadzone: 12,
+	trackpadMode: false,
+	trackpadBoost: 3,
+	trackpadMomentum: 250,
 	sharpen: 35,
 	denoise: 0,
 	mouseInvertY: false,
@@ -329,6 +332,8 @@ function loadSettings() {
 		settings.vpadTheme = "classic";
 	settings.vpadOpacity = Math.max(1, Math.min(100, Number(settings.vpadOpacity) || 55));
 	settings.mouseSens = clamp(Number(settings.mouseSens) || 80, 10, 200);
+	settings.trackpadBoost = clamp(Number(settings.trackpadBoost) || 3, 1, 8);
+	settings.trackpadMomentum = clamp(Number(settings.trackpadMomentum ?? 250) || 0, 0, 800);
 	if (!parsed.mouseStickDefaultRs) {
 		if (!parsed.mouseStick || parsed.mouseStick === "none") settings.mouseStick = "rs";
 		settings.mouseStickDefaultRs = true;
@@ -376,6 +381,9 @@ function loadSettings() {
 	$("s-sharpen-val").textContent = videoRenderer.sharp ? settings.sharpen + "%" : t("quality.noGpu");
 	$("s-mouse-deadzone-val").textContent = settings.mouseDeadzone + "%";
 	$("s-mouse-invert").checked = !!settings.mouseInvertY;
+	$("s-trackpad").checked = !!settings.trackpadMode;
+	$("s-trackpad-boost").value = String(settings.trackpadBoost ?? 3);
+	$("s-trackpad-momentum").value = String(settings.trackpadMomentum ?? 250);
 	syncMouseSensLabel();
 	applyVpadOpacity();
 	applyDiscoveryUi();
@@ -409,6 +417,9 @@ function saveSettings() {
 		sharpen: clamp(Number($("s-sharpen").value) || 0, 0, 100),
 		denoise: clamp(Number($("s-denoise").value) || 0, 0, 100),
 		mouseInvertY: $("s-mouse-invert").checked,
+		trackpadMode: $("s-trackpad").checked,
+		trackpadBoost: clamp(Number($("s-trackpad-boost").value) || 3, 1, 8),
+		trackpadMomentum: clamp(Number($("s-trackpad-momentum").value) || 0, 0, 800),
 		vpadOpacity: vpadOpacityPct(),
 		vpadTheme: vpadThemeId(),
 		vpadCustom: settings.vpadCustom && typeof settings.vpadCustom === "object" ? settings.vpadCustom : {},
@@ -460,6 +471,14 @@ function isMouseCode(code) {
 function syncMouseSensLabel() {
 	const out = $("s-mouse-sens-val");
 	if (out) out.textContent = String(settings.mouseSens || 80);
+	const boost = $("s-trackpad-boost-val");
+	if (boost) boost.textContent = (settings.trackpadBoost ?? 3) + "×";
+	const mom = $("s-trackpad-momentum-val");
+	if (mom) mom.textContent = settings.trackpadMomentum ? settings.trackpadMomentum + " ms" : t("keys.momentumOff");
+	for (const id of ["s-trackpad-boost-row", "s-trackpad-momentum-row"]) {
+		const row = $(id);
+		if (row) row.style.display = settings.trackpadMode ? "" : "none";
+	}
 }
 
 function asCodeList(value) {
@@ -702,9 +721,10 @@ function tryPointerLock() {
 	if (!wantsPointerLock()) return;
 	if (document.pointerLockElement === canvas) return;
 	try {
-		const request = canvas.requestPointerLock?.(settings.pcControls ? { unadjustedMovement: true } : undefined);
+		const raw = settings.pcControls && !settings.trackpadMode;
+		const request = canvas.requestPointerLock?.(raw ? { unadjustedMovement: true } : undefined);
 		request?.catch((error) => {
-			if (settings.pcControls && error.name === "NotSupportedError" && wantsPointerLock())
+			if (raw && error.name === "NotSupportedError" && wantsPointerLock())
 				canvas.requestPointerLock?.()?.catch?.(() => {});
 		});
 	} catch { /* Older browsers may not accept pointer-lock options. */ }
@@ -4456,7 +4476,9 @@ function pollInput() {
 	}
 	const mouseStick = settings.pcControls ? "rs" : settings.mouseStick;
 	if (mouseStick === "ls" || mouseStick === "rs") {
-		mouseLook = mouseMotion.read(performance.now(), Number(settings.mouseSens) || 80, (settings.mouseDeadzone ?? 12) / 100);
+		const tp = !!settings.trackpadMode;
+		mouseLook = mouseMotion.read(performance.now(), Number(settings.mouseSens) || 80, (settings.mouseDeadzone ?? 12) / 100,
+			tp ? (Number(settings.trackpadBoost) || 3) : 1, tp ? 0.6 : 1, tp ? (Number(settings.trackpadMomentum) || 0) : 0);
 		if (settings.mouseInvertY) mouseLook.y = -mouseLook.y;
 		const mx = stick(mouseLook.x);
 		const my = stick(mouseLook.y);
