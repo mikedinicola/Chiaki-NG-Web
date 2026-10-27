@@ -10,7 +10,7 @@ try {
     if ($portable.ExitCode -ne 0) { throw "Portable smoke failed; inspect $data" }
     Get-Content -LiteralPath (Join-Path $data 'smoke-result.txt')
     $installed = Join-Path $projectDir ('.tools/install-test-' + [Guid]::NewGuid().ToString('N'))
-    $installArgs = '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOICONS /DIR="' + $installed + '"'
+    $installArgs = '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOICONS /CHIAKITEST=' + [Guid]::NewGuid().ToString('N') + ' /DIR="' + $installed + '"'
     $setup = Start-Process -FilePath $package.installer -ArgumentList $installArgs -WindowStyle Hidden -Wait -PassThru
     if ($setup.ExitCode -ne 0) { throw 'Installer test failed.' }
     $installedLauncher = Join-Path $installed 'Chiaki-NG Web.exe'

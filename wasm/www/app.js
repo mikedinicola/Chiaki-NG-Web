@@ -6654,7 +6654,8 @@ function bindUi() {
 	$("settings-view").addEventListener("input", () => { applySettingsNow(); });
 	$("s-language").addEventListener("change", () => { applySettingsNow(); });
 
-	if (location.hash === "#video") openSettingsTab("video");
+	if (location.hash === "#updates") openSettingsTab("general");
+	else if (location.hash === "#video") openSettingsTab("video");
 	else if (location.hash === "#settings") showView("settings");
 
 	canvas.addEventListener("pointerdown", (e) => {

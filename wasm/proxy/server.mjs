@@ -15,9 +15,20 @@ import { loadEnv } from "./env.mjs";
 import { openStore } from "./store.mjs";
 import { createShareHub } from "./share.mjs";
 import { startRustRelay } from "./rust-relay.mjs";
+import { createUpdater, localUpdateRequest } from "./updater.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cfg = loadEnv();
+let installedVersion = "development";
+try { installedVersion = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "BUILD-INFO.json"), "utf8").replace(/^\uFEFF/, "")).version; } catch {}
+const updateToken = process.env.CHIAKI_UPDATE_TOKEN || "";
+const updater = createUpdater({ current: installedVersion, dataDir: process.env.CHIAKI_UPDATE_DIR || path.join(cfg.dbDir, "app-updates"),
+	installable: process.platform === "win32" && process.env.CHIAKI_UPDATE_INSTALLABLE === "1" && /^[a-f0-9]{64}$/.test(updateToken),
+	install: async (file, sha256) => {
+		process.stdout.write(`CHIAKI_UPDATE_${updateToken} ${Buffer.from(file).toString("base64")} ${sha256}\n`);
+	}
+});
+const stopUpdates = updater.start();
 let rustRelay = null;
 const store = openStore(cfg);
 const PORT = cfg.port;
@@ -1130,6 +1141,27 @@ function requireUser(req, res) {
 async function handleApi(req, res, reqUrl) {
 	const secure = req.socket?.encrypted || req.headers["x-forwarded-proto"] === "https";
 	const route = req.method + " " + reqUrl.pathname;
+	if (reqUrl.pathname.startsWith("/api/update/")) {
+		if (!localUpdateRequest(req)) { json(res, 403, { error: "Updates require a same-origin local browser request." }); return true; }
+		try {
+			if (route === "GET /api/update/status") json(res, 200, await updater.snapshot());
+			else if (route === "POST /api/update/check") { await updater.check(); json(res, 200, await updater.snapshot()); }
+			else if (route === "POST /api/update/settings") {
+				const body = await readBody(req, 1024);
+				if (typeof body.autoCheck !== "boolean") throw new Error("Invalid update preference.");
+				json(res, 200, await updater.setAuto(body.autoCheck));
+			} else if (route === "POST /api/update/install") {
+				const body = await readBody(req, 1024);
+				if (!/^\d+\.\d+\.\d+$/.test(body.version)) throw new Error("Invalid release version.");
+				const state = await updater.snapshot();
+				if (!state.installable || !state.latest || state.latest.version !== body.version || ["checking", "downloading", "installing"].includes(state.status)) throw new Error("Check for an available update in the installed Windows edition first.");
+				// Reply before the native launcher stops this server for installation.
+				json(res, 202, { status: "preparing" });
+				updater.installLatest(body.version).catch(() => {});
+			} else json(res, 404, { error: "not_found" });
+		} catch (e) { json(res, 400, { error: e.message }); }
+		return true;
+	}
 
 	if (route === "GET /api/meta") {
 		json(res, 200, publicMeta(req, currentUser(req)));
@@ -1651,6 +1683,7 @@ export async function startServers() {
 		port,
 		bindHost,
 		async close() {
+			stopUpdates();
 			rustRelay?.close();
 			rustRelay = null;
 			const servers = [httpServer, ...httpsServers];

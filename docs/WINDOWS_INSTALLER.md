@@ -6,8 +6,8 @@ It does not use Electron or its embedded runtime.
 
 ## Install
 
-1. Download `Chiaki-NG-Web-Setup-1.10.2-x64.exe` from the
-   [browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.2).
+1. Download `Chiaki-NG-Web-Setup-1.10.3-x64.exe` from the
+   [browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.3).
 2. Run it and follow the setup wizard. It installs for your Windows account;
    administrator access is not required. The desktop shortcut is optional.
 3. Open **Chiaki-NG Web** from Start. The first-run guide appears for a new
@@ -79,3 +79,15 @@ reference. Inno Setup is a maintainer tool and is not required on users' PCs.
 an isolated workspace test folder, runs the installed smoke test on port 8093,
 then uninstalls that test copy and verifies its separate data folder remains.
 It does not connect to a PlayStation or use the developer's data.
+
+## Updates inside the app
+
+Install version 1.10.3 once to enable the updater. Open **Settings → General → App updates**, or right-click the tray icon and choose **Check for updates**. Automatic checks run about 30 seconds after starting the local server and every six hours while it remains open. Turn off the checkbox to disable them; **Check now** still works.
+
+The updater selects the newest numbered `browser-v` release from this repository, including community previews. It ignores native/non-browser releases and older versions. A home-screen notice appears when a newer browser installer is available. Read its release notes, then choose **Download and install** when you have finished playing. This closes active streams and restarts the app. Existing browser settings, registrations and separate user data are preserved.
+
+The installed Windows edition downloads the exact x64 installer from this repository and verifies its size and GitHub SHA-256 digest. The native launcher verifies the saved file again before running setup in the same install folder. A checksum verifies download integrity; the community installer is still unsigned. Updates trust this repository and GitHub's HTTPS release metadata. No GitHub login, account ID, console information or credentials are sent. GitHub receives the normal network request, including your public IP.
+
+Portable and source builds can check and open release downloads, but do not install themselves. A reused development server must be closed before launching the installed edition to enable installation. Update preferences are saved separately from program files. Downloaded installers remain in the local data folder's `updates` directory; they can be removed after setup finishes.
+
+Maintainer checks: `scripts/test-browser-package.ps1` and `scripts/test-browser-updater.ps1`. The latter uses an isolated synthetic local server and harmless compiled installer fixture to verify native checksum/IPC/shutdown/handoff behavior without replacing your running app.

@@ -339,6 +339,16 @@ test("desktop-managed server exposes its identity and exits when launcher stdin 
 	const guide = await fetch(`http://127.0.0.1:${port}/first-run.html`);
 	assert.equal(guide.status, 200);
 	assert.match(await guide.text(), /All controls at a glance/);
+	const updates = await fetch(`http://127.0.0.1:${port}/api/update/status`);
+	assert.equal(updates.status, 200);
+	assert.equal((await updates.json()).installable, false);
+	const blocked = await fetch(`http://127.0.0.1:${port}/api/update/check`, { method: "POST", headers: { Origin: "https://example.com", "X-Chiaki-Update": "1" } });
+	assert.equal(blocked.status, 403);
+	const preference = await fetch(`http://127.0.0.1:${port}/api/update/settings`, {
+		method: "POST", headers: { Origin: `http://127.0.0.1:${port}`, "X-Chiaki-Update": "1", "Content-Type": "application/json" }, body: JSON.stringify({ autoCheck: false })
+	});
+	assert.equal(preference.status, 200);
+	assert.equal((await preference.json()).autoCheck, false);
 	const exited = once(child, "exit");
 	child.stdin.end();
 	assert.equal((await exited)[0], 0);

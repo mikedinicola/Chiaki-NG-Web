@@ -5,6 +5,8 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -18,6 +20,35 @@ internal static class Launcher
     private static string baseUrl;
     private static string dataDir;
     private static string logPath;
+    private static string updateToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+    private static Control updateControl;
+    private static string appRoot;
+
+    private static void UpdateMessage(string line)
+    {
+        var prefix = "CHIAKI_UPDATE_" + updateToken + " ";
+        if (line == null || !line.StartsWith(prefix) || updateControl == null) return;
+        updateControl.BeginInvoke((Action)delegate {
+            try {
+                if (!ownsServer || !File.Exists(Path.Combine(appRoot, "unins000.exe"))) throw new Exception("Use the installed Windows edition to apply updates.");
+                var parts = line.Substring(prefix.Length).Split(' ');
+                if (parts.Length != 2) throw new Exception("Invalid update request.");
+                var file = Path.GetFullPath(Encoding.UTF8.GetString(Convert.FromBase64String(parts[0])));
+                var folder = Path.GetFullPath(Path.Combine(dataDir, "db", "..", "updates")) + Path.DirectorySeparatorChar;
+                if (!file.StartsWith(folder, StringComparison.OrdinalIgnoreCase) || !file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) throw new Exception("Invalid update location.");
+                string digest;
+                using (var sha = SHA256.Create()) using (var input = File.OpenRead(file))
+                    digest = BitConverter.ToString(sha.ComputeHash(input)).Replace("-", "").ToLowerInvariant();
+                if (digest != parts[1]) throw new Exception("Update checksum changed. Installation cancelled.");
+                Stop();
+                Process.Start(new ProcessStartInfo(file, "/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /CHIAKIUPDATE=1 /DIR=\"" + appRoot + "\"") { UseShellExecute = false });
+                Application.Exit();
+            } catch (Exception e) {
+                try { if (!Healthy()) Start(new Uri(baseUrl).Port, appRoot); } catch { }
+                MessageBox.Show(e.Message, "Chiaki update", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        });
+    }
 
     private static string Option(string[] args, string name, string fallback)
     {
@@ -75,8 +106,11 @@ internal static class Launcher
         env["CHIAKI_RELAY_ALLOW_WAN"] = "false"; env["CHIAKI_DISCOVERY_ENABLED"] = "true";
         env["CHIAKI_CLOUD_URL"] = ""; env["CHIAKI_PUBLIC_ORIGIN"] = "";
         env["CHIAKI_DESKTOP_MANAGED"] = "1";
+        env["CHIAKI_UPDATE_TOKEN"] = updateToken;
+        env["CHIAKI_UPDATE_DIR"] = dataDir;
+        env["CHIAKI_UPDATE_INSTALLABLE"] = File.Exists(Path.Combine(root, "unins000.exe")) ? "1" : "0";
         server = new Process(); server.StartInfo = info;
-        server.OutputDataReceived += delegate(object sender, DataReceivedEventArgs e) { WriteLog(e.Data); };
+        server.OutputDataReceived += delegate(object sender, DataReceivedEventArgs e) { if (e.Data != null && e.Data.StartsWith("CHIAKI_UPDATE_" + updateToken + " ")) UpdateMessage(e.Data); else WriteLog(e.Data); };
         server.ErrorDataReceived += delegate(object sender, DataReceivedEventArgs e) { WriteLog(e.Data); };
         if (!server.Start()) throw new Exception("Could not start the bundled server.");
         ownsServer = true; server.BeginOutputReadLine(); server.BeginErrorReadLine();
@@ -139,14 +173,17 @@ internal static class Launcher
             try
             {
                 var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                appRoot = root;
                 Start(port, root);
                 if (smoke) { SmokeCheck(); return 0; }
                 Application.EnableVisualStyles();
+                updateControl = new Control(); updateControl.CreateControl();
                 using (var menu = new ContextMenuStrip())
                 using (var tray = new NotifyIcon())
                 {
                     menu.Items.Add("Open Chiaki", null, delegate { OpenBrowser("/"); });
                     menu.Items.Add("First-time guide", null, delegate { OpenBrowser("/first-run.html"); });
+                    menu.Items.Add("Check for updates", null, delegate { OpenBrowser("/#updates"); });
                     menu.Items.Add("Open local data folder", null, delegate { Process.Start("explorer.exe", "\"" + dataDir + "\""); });
                     menu.Items.Add(new ToolStripSeparator());
                     menu.Items.Add(ownsServer ? "Quit and stop server" : "Quit launcher", null, delegate { Application.Exit(); });

@@ -5,10 +5,10 @@
   #error OutputDir is required
 #endif
 #ifndef AppVersion
-  #define AppVersion "1.10.2"
+  #define AppVersion "1.10.3"
 #endif
 [Setup]
-AppId={{BC5BE919-47C8-4C06-868B-76720A5B0531}
+AppId={code:GetInstallIdentity}
 AppName=Chiaki-NG Web Browser
 AppVersion={#AppVersion}
 AppPublisher=Chiaki-NG Web community
@@ -39,4 +39,25 @@ Name: "{group}\Chiaki-NG Web"; Filename: "{app}\Chiaki-NG Web.exe"
 Name: "{group}\First-time setup guide"; Filename: "{app}\Chiaki-NG Web.exe"; Parameters: "--guide"
 Name: "{autodesktop}\Chiaki-NG Web"; Filename: "{app}\Chiaki-NG Web.exe"; Tasks: desktopicon
 [Run]
+Filename: "{app}\Chiaki-NG Web.exe"; Flags: nowait; Check: IsAutomaticUpdate
 Filename: "{app}\Chiaki-NG Web.exe"; Description: "Open Chiaki-NG Web in your browser"; Flags: nowait postinstall skipifsilent
+
+[Code]
+function GetInstallIdentity(Param: String): String;
+var
+  TestId: String;
+  I: Integer;
+begin
+  Result := '{BC5BE919-47C8-4C06-868B-76720A5B0531}';
+  { Isolated maintainer tests must not overwrite a user's uninstall record. }
+  TestId := ExpandConstant('{param:CHIAKITEST|}');
+  if Length(TestId) <> 32 then Exit;
+  for I := 1 to Length(TestId) do
+    if Pos(TestId[I], '0123456789abcdefABCDEF') = 0 then Exit;
+  Result := Result + '-Test-' + TestId;
+end;
+
+function IsAutomaticUpdate: Boolean;
+begin
+  Result := ExpandConstant('{param:CHIAKIUPDATE|0}') = '1';
+end;

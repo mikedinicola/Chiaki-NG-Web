@@ -78,6 +78,7 @@
 			</section>
 			<img class="watermark" src="icons/chiaking-logo.svg" alt="">
 			<ul id="hosts" class="host-list"></ul>
+			<a id="update-notice" class="update-notice hidden" href="#updates">An app update is available →</a>
 			<button class="fab" id="btn-discover" type="button" data-i18n-title="discovery" title="Discovery" aria-pressed="false">
 				<img id="fab-icon" src="icons/discover-off-24px.svg" alt="">
 			</button>
@@ -139,6 +140,14 @@
 			</nav>
 			<div class="settings-body">
 				<div class="tab-page" data-page="general">
+					<section id="update-panel" class="update-panel" aria-labelledby="update-heading">
+						<h3 id="update-heading">App updates</h3>
+						<p id="update-status" role="status" aria-live="polite">Loading update status…</p>
+						<label><input id="update-auto" type="checkbox" checked> Automatically check GitHub for updates</label>
+						<p class="hint">Checks at startup and every six hours. Installation starts only when you choose it. Includes browser community previews. No account or console details are sent.</p>
+						<div class="update-actions"><button type="button" id="update-check">Check now</button><button type="button" id="update-install" class="primary" disabled>Download and install</button><a id="update-release" href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases" target="_blank" rel="noopener noreferrer">Release notes / downloads</a></div>
+						<p class="hint">Installation closes the local app and any active stream, then reopens it. Your saved pairings and settings stay in place. Portable/source builds use the GitHub download instead.</p>
+					</section>
 					<div class="form-row">
 						<label data-i18n="general.language">Language:</label>
 						<select id="s-language">
@@ -707,5 +716,6 @@
 	<script src="video-renderer.js"></script>
 	<script src="video-pipeline.js"></script>
 	<script src="app.js"></script>
+	<script src="updates.js"></script>
 </body>
 </html>
