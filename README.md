@@ -4,7 +4,7 @@
 
 <p align="center"><strong>Play your PS4 or PS5 on your PC, through a web browser.</strong><br>Your console runs the game. Your PC shows the picture and sends your controls back.</p>
 
-<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.11.1"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
+<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.12.0"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
 
 <p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml"><img src="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml/badge.svg" alt="Browser checks on Windows and Linux"></a></p>
 
@@ -29,6 +29,8 @@ Start with your **PC and PlayStation on the same home network**. The console mus
 Follow the **[Windows first-time setup guide](docs/GETTING_STARTED.md)**. It explains what to install, which commands to copy, and what to expect on screen.
 
 The **Windows installer** includes everything needed to run the browser edition. Install it, open **Chiaki-NG Web** from Start, and follow the first-run guide. No Git, Rust, Python or separate Node installation is needed. A portable ZIP is available too. This first installer release is an unsigned community preview for Windows 10/11 x64.
+
+Using a Mac? See the [experimental macOS source setup](docs/MACOS_SETUP.md), including the launcher and trackpad controls.
 
 Already comfortable with development tools? Use the [complete build and configuration guide](docs/BROWSER_SETUP.md).
 

@@ -71,3 +71,14 @@ picture remains black-backed and is not tinted by the selected interface theme.
 No new frame interpolation, image buffering or video filters are added by this
 redesign. Translucency is limited to navigation; stream controls use solid
 surfaces. Browser/OS rendering and GPU load still determine actual performance.
+
+## Laptop trackpads
+
+Under **Keyboard & mouse**, enable **Trackpad mode (Mac)** for camera control
+with pointer acceleration, adjustable boost and optional momentum. Release and
+recapture the cursor with F8 twice after changing this mode. Start with the
+3× boost and 250 ms momentum; choose 0 ms to stop movement promptly after input.
+A browser cannot detect a resting finger, so touching the trackpad alone does
+not cancel momentum. Use a small opposite swipe, lower momentum, or disable it.
+The trackpad option is off initially and ordinary mouse controls keep their
+existing behavior. Game-specific turn-speed limits still apply.

@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.11.1',
+    [string]$Version = '1.12.0',
     [string]$CompilerPath,
     [switch]$AllowDirty
 )

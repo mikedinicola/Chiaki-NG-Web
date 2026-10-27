@@ -124,3 +124,29 @@ test("controls sidebar shortcut is reserved only in gameplay, outside text input
 	}
 	assert.equal(open, false);
 });
+
+test("trackpad momentum decays to the compensated dead zone before stopping", () => {
+	for (const [sensitivity, gain, curve, deadzone] of [[80,3,.6,.12],[200,8,.6,0],[10,1,.6,.3],[80,3,1,.12]]) {
+		const mouse = ChiakiControls.createMouse(); mouse.push(8,4,8);
+		let previous = mouse.read(8,sensitivity,deadzone,gain,curve,250), stopped = false;
+		for (let now = 16; now < 12000; now += 8) {
+			const value = mouse.read(now,sensitivity,deadzone,gain,curve,250);
+			const magnitude = Math.hypot(value.x,value.y);
+			assert.ok(Number.isFinite(magnitude));
+			if (!magnitude) {
+				assert.ok(Math.hypot(previous.x,previous.y) <= deadzone + (1-deadzone)*.0105,
+					"glide must reach the near-dead-zone output before stopping"); stopped = true; break;
+			}
+			assert.ok(magnitude <= Math.hypot(previous.x,previous.y) + 1e-12); previous = value;
+		}
+		assert.equal(stopped,true); assert.deepEqual(mouse.read(13000,sensitivity,deadzone,gain,curve,250),{x:0,y:0});
+	}
+});
+test("trackpad reset clears coasting and momentum Off stops promptly", () => {
+	const mouse = ChiakiControls.createMouse(); mouse.push(8,0,8);
+	assert.ok(mouse.read(8,80,.12,3,.6,250).x > 0);
+	assert.ok(mouse.read(40,80,.12,3,.6,250).x > 0);
+	mouse.reset(); assert.deepEqual(mouse.read(48,80,.12,3,.6,250),{x:0,y:0});
+	mouse.push(8,0,56); mouse.read(56,80,.12,3,.6,0);
+	assert.deepEqual(mouse.read(81,80,.12,3,.6,0),{x:0,y:0});
+});
