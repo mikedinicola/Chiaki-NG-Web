@@ -57,6 +57,6 @@ EOF
 chown 65534:65534 secrets/turnserver.conf
 chmod 400 secrets/turnserver.conf
 echo "Configuration created. Ensure DNS points to $public_ip and the VPS firewall allows the guide's ports."
-echo 'Start with: sudo docker compose up -d --build'
+echo 'Start and get your private setup code with: sudo bash start.sh'
 echo 'Read your private host key with: sudo sed -n "s/^HOST_KEY=//p" .env'
 echo 'Never share the host key or TURN secret with guests. Send only the app-generated invite.'

@@ -82,3 +82,16 @@ A browser cannot detect a resting finger, so touching the trackpad alone does
 not cancel momentum. Use a small opposite swipe, lower momentum, or disable it.
 The trackpad option is off initially and ordinary mouse controls keep their
 existing behavior. Game-specific turn-speed limits still apply.
+
+## Invite a friend
+
+Online play has three steps: connect your console, load the server's private
+setup code, then create and copy a guest invitation. Setup stays in tab memory
+so repeat invites need no retyping. The code is a host credential; send only the
+generated invitation link to friends. Picture quality and expiry are under
+Invite options. Approve each arriving friend as Watch only or Let play; Stop
+sharing revokes the invitation and disconnects everyone.
+
+For first-time self-hosting, the [online setup guide](ONLINE_PLAY.md#first-time-setup)
+uses `sudo bash start.sh` to create/start the service and print a setup code after
+HTTPS is ready. A public Linux server and domain are still required once.

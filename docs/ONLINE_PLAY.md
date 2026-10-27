@@ -19,29 +19,34 @@ not an anonymous public gaming service.
   normal DNS record; HTTP-only CDN proxies cannot carry the TURN UDP traffic.
 - Docker Engine and the Docker Compose plugin installed on the VPS using
   [Docker's official Linux installation instructions](https://docs.docker.com/engine/install/).
-- Chiaki-NG Web **1.12.1 or newer** on the gaming PC. Keep the PS5 and PC on
+- Chiaki-NG Web **1.13.0 or newer** on the gaming PC. Keep the PS5 and PC on
   your usual home network. No ports need forwarding on the home router.
 
 The VPS is separate from your gaming PC. Do not publish port 8090, the local
 database, `/posix-net`, the updater, or the entire Chiaki application through a
 tunnel or reverse proxy.
 
-## Set up the public service
+## First-time setup
 
-1. Download the **Chiaki-Online-Server-1.12.1.zip** release asset and extract it
-   on the VPS. Alternatively clone this repository. The ZIP contains only the
-   invitation service, its guest page and the required shared browser helpers.
-2. In a terminal inside the extracted folder, run:
+You need a Linux VPS and a domain once. There is no shared public invitation
+service included with the app. This server is separate from your gaming PC.
+
+1. Point your domain's DNS A record to the VPS public IPv4 and install Docker
+   Engine with its Compose plugin. Keep the record DNS-only if your provider
+   offers an HTTP CDN proxy.
+2. Download the **Chiaki-Online-Server-1.13.0.zip** release asset and extract it
+   on the VPS. Inside the extracted folder run:
 
    ```sh
    cd wasm/online/deploy
-   sudo bash setup.sh
+   sudo bash start.sh
    ```
 
-   Enter your domain and the VPS public IPv4 when asked. The script creates
-   fresh private keys and refuses to overwrite an existing setup. Do not run
-   setup again for a normal upgrade.
-3. In the provider's VPS firewall and the server firewall, allow:
+   On the first run it asks for the domain and VPS public IPv4, generates private
+   keys, builds and starts the service, then waits for verified HTTPS. Later runs
+   reuse existing keys. It never overwrites your configuration.
+3. In your VPS/provider firewall allow the following ports. Keep your SSH rule.
+   These are VPS ports, not home-router or PlayStation ports:
 
    | Port | Protocol | Purpose |
    | --- | --- | --- |
@@ -51,50 +56,47 @@ tunnel or reverse proxy.
    | 3478 | TCP and UDP | Authenticated TURN relay |
    | 49160–49200 | UDP | TURN media relay range |
 
-   Keep your existing SSH/admin rule. These are **VPS** ports, not PS5 or home
-   router ports. Do not publish the broker's internal port 3000.
-4. Start it:
+   If setup reports that HTTPS isn't ready, fix DNS/firewall settings and rerun
+   `sudo bash start.sh`. Do not publish internal port 3000 or the local gaming app.
+4. Copy the **private host setup code** printed after the service is ready. On
+   the gaming PC open **Settings → Online play**, paste it and choose **Use setup
+   code**. This loads the settings; creating an invite makes the connection.
 
-   ```sh
-   sudo docker compose up -d --build
-   ```
-
-   Caddy obtains and renews the HTTPS certificate. Check
-   `https://play.example.com/health`; it should say `ok`. Opening the main page
-   without an invite should say to ask the host for a valid invite.
-5. Read the host key privately:
-
-   ```sh
-   sudo sed -n 's/^HOST_KEY=//p' .env
-   ```
-
-   This key lets you create sessions. Keep it yourself. Never send it to guests,
-   put it in screenshots, commit `.env`/`secrets`, or paste it into an issue.
+Already have the server configured? Update its files, then run
+`sudo bash connect-code.sh` in `wasm/online/deploy` to print the setup code.
+Manual address/key entry remains under **Enter server details manually**.
+The setup code contains the host key; base64 encoding does not encrypt it.
+Keep it private. Do not put it in a public screenshot or send it to a friend.
 
 ## Host a game
 
-1. Open Chiaki on the PC and start your console stream normally.
-2. Press **Online play** in the stream toolbar, or open **Settings → General →
-   Host online play**. Paste the HTTPS server address and private host key.
-3. Start with **720p60 · 6 Mbps**. Choose how long the invite should last and
-   press **Create private invite**. Copy the invite and send it privately.
-4. Guests appear as requests. Verify who they are through your usual chat; a
-   display name is not proof of identity. Choose **Watch only** or **Let play**.
-5. Use **Watch only** to take control away, **Remove** to kick one guest, or
-   **Stop and revoke everyone** / **Stop online** to close every peer and revoke
-   the invite immediately. Closing the host tab, losing signaling, stopping the
-   console stream, restarting the broker or reaching expiry also ends access.
+1. Start your console stream as usual.
+2. Open **Online play** from the stream toolbar. Its checklist shows what is ready.
+3. Press **Create invite**, then **Copy invite link**, and send that link privately
+   to your friend. The default is 720p60 with a 30-minute expiry. Open **Invite
+   options** only if you want to change picture quality or expiry.
+4. When the friend appears under **Friends**, verify who they are through your
+   usual chat, then choose **Watch only** or **Let play**. Display names aren't
+   proof of identity. Only one friend controls at a time.
+5. Use **Watch only** to take control away, **Remove** to disconnect one friend,
+   or **Stop sharing** / **Stop online** to revoke the invite and disconnect all.
 
-The host key is cleared from the form and is not saved by the app. Paste it
-again for a new browser session. Existing guests are not admitted automatically
-after a reconnect. A removed guest with the same link can ask again, but needs a
-fresh approval. Revoke the whole session to invalidate the link itself.
+The private setup remains in memory for the current tab, so another invite needs
+no retyping. Reloading, leaving or closing the page clears it. No host credentials
+are stored in localStorage, exported to a share link or given to guests. Use
+**Change server** to forget the loaded setup before closing the tab. You cannot
+change it while sharing; stop sharing first.
 
-Keep the host tab visible while playing. Start with one friend; additional
-viewers require more upload bandwidth and encoding work. At 6 Mbps, one viewer
-uses about 2.7 GB of video data per hour before overhead. A TURN-relayed session
-also consumes VPS network traffic. The service caps each room at four guests
-including pending requests, and has connection, message, relay and room limits.
+Closing the tab, losing signaling, stopping the console, restarting the broker
+or reaching expiry ends access. Guests must be approved each time they join;
+a removed guest can request to rejoin while the invite is valid, so stop sharing
+to invalidate the whole invite.
+
+Keep the host tab visible. Start with one friend; each viewer needs more upload
+bandwidth and encoding work. At 6 Mbps one viewer uses about 2.7 GB of video per
+hour before overhead; relayed traffic also uses VPS bandwidth. The service caps
+rooms at four guests including pending requests and enforces connection, message,
+relay and room limits.
 
 ## Join as a friend
 

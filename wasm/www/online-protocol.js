@@ -21,6 +21,16 @@ globalThis.ChiakiOnlineProtocol = Object.freeze({
 		await pc.setRemoteDescription(description);
 		while (queue.length) await pc.addIceCandidate(queue.shift());
 	},
+	setup(value) {
+		if (typeof value !== "string" || value.length > 2048 || !/^chiaki-host-v1:[A-Za-z0-9_-]+$/.test(value.trim())) throw new Error("Paste the private chiaki-host-v1 setup code from your invitation server.");
+		let data;
+		try { data = JSON.parse(atob(value.trim().slice(15).replace(/-/g, "+").replace(/_/g, "/"))); } catch { throw new Error("The setup code is incomplete or invalid. Copy it again from your server."); }
+		return this.credentials(data?.server, data?.key);
+	},
+	credentials(server, key) {
+		if (typeof server !== "string" || typeof key !== "string" || !/^[a-f0-9]{64}$/.test(key)) throw new Error("Use a valid server address and its private 64-character host key.");
+		return { server: this.url(server), key };
+	},
 	url(value) {
 		const url = new URL(value);
 		if (url.username || url.password || url.search || url.hash || url.pathname !== "/" || (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname)))) throw new Error("Use your server's HTTPS address without a path, username or password.");

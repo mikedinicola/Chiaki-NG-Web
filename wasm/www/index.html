@@ -143,14 +143,25 @@
 			<div class="settings-body">
 				<div class="tab-page" data-page="general">
 <section id="online-panel" class="update-panel" aria-labelledby="online-heading">
-<h3 id="online-heading">Host online play</h3><p id="online-status" role="status" aria-live="polite">Start a console stream, then create an invite for friends.</p>
+<h3 id="online-heading">Play with a friend</h3>
+<p id="online-status" role="status" aria-live="polite">Connect your console, then create a private link for your friend.</p>
+<ol class="online-steps" aria-label="Hosting progress"><li id="online-step-stream">1. Connect your console</li><li id="online-step-server">2. Set up sharing once</li><li id="online-step-invite">3. Invite your friend</li></ol>
+<div id="online-stream-help"><p class="hint">Connect to a console from the home screen first. Your friend will share that game session.</p><button id="online-open-consoles" type="button">Choose console</button></div>
+<div id="online-setup">
+<h4>Set up sharing</h4><p class="hint">Paste your private setup code from the invitation server. You only do this once per open tab. Never send this code to a friend.</p>
+<label for="online-setup-code">Private setup code</label><input id="online-setup-code" type="password" autocomplete="off" maxlength="2048" placeholder="chiaki-host-v1:…">
+<button id="online-setup-use" type="button">Use setup code</button>
+<details class="online-details"><summary>Enter server details manually</summary>
 <label>Invitation server <input id="online-server" type="url" placeholder="https://play.example.com" autocomplete="off"></label>
-<label>Server host key <input id="online-key" type="password" autocomplete="off" maxlength="64" placeholder="Paste from your server setup"></label>
-<div class="update-actions"><label>Invite expires in <select id="online-minutes"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option></select></label><label>Guest picture <select id="online-quality"><option value="720">720p60 · 6 Mbps</option><option value="1080">1080p60 · 10 Mbps</option></select></label></div>
-<div class="update-actions"><button id="online-start" type="button">Create private invite</button><button id="online-stop" type="button" disabled>Stop and revoke everyone</button></div>
-<label>Private invite <input id="online-invite" type="text" readonly autocomplete="off"></label><button id="online-copy" type="button" disabled>Copy invite</button><ul id="online-guests"></ul>
-<p class="hint">Every guest needs approval. Choose Watch only or Let play; one guest controls at a time. Input shares your controller, not a separate player. PS/system buttons stay local. Sharing re-encodes video and can add GPU load and latency. Keep the host tab visible.</p>
-<p class="hint">Requires your own public server and domain. See the <a href="https://github.com/SKIZZOO/Chiaki-NG-Web/blob/main/docs/ONLINE_PLAY.md" target="_blank" rel="noopener noreferrer">Online Play setup guide</a>. No home-router ports or console keys are shared. WebRTC may reveal public IPs to approved peers. Invite only people you trust.</p></section>
+<label>Server host key <input id="online-key" type="password" autocomplete="off" maxlength="64" placeholder="Private 64-character host key"></label><button id="online-manual-use" type="button">Use these details</button></details>
+<details class="online-details"><summary>I don't have an invitation server</summary><p>You need a public Linux server and a domain once. Your gaming PC stays private. There is no shared public service included with this app.</p><ol><li>Get a Linux VPS and point a domain to it.</li><li>Follow the <a href="https://github.com/SKIZZOO/Chiaki-NG-Web/blob/main/docs/ONLINE_PLAY.md#first-time-setup" target="_blank" rel="noopener noreferrer">first-time setup guide</a> to start the invitation service.</li><li>On that server, run <code>sudo bash connect-code.sh</code> in its deploy folder. Paste the code here.</li></ol><p class="hint">This is a host setup code, not a guest invitation. Share only the invite generated below.</p></details>
+</div>
+<div id="online-configured" hidden><p><strong id="online-server-name"></strong> <span class="online-badge">Setup loaded</span></p><p class="hint">Private credentials stay in this tab's memory. They are cleared when you reload or close it.</p><button id="online-change" type="button">Change server</button></div>
+<details class="online-details"><summary>Invite options</summary><div class="update-actions"><label>Invite expires in <select id="online-minutes"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option></select></label><label>Guest picture <select id="online-quality"><option value="720">720p60 · Recommended</option><option value="1080">1080p60 · Higher quality</option></select></label></div></details>
+<div class="update-actions"><button id="online-start" class="primary" type="button" disabled>Create invite</button><button id="online-stop" type="button" disabled>Stop sharing</button></div>
+<div id="online-invite-ready" hidden><label>Send this link to your friend <input id="online-invite" type="text" readonly autocomplete="off"></label><button id="online-copy" class="primary" type="button" disabled>Copy invite link</button><p class="hint">Your friend opens the link, enters a name and asks to join. Approve them below. They need no installation or PSN login.</p></div>
+<div id="online-people" hidden><h4>Friends</h4><p id="online-waiting" class="hint">Waiting for your friend to open the link…</p><ul id="online-guests"></ul></div>
+<details class="online-details"><summary>Privacy and controls</summary><p class="hint">Every friend needs your approval. Watch only shares the picture and sound; Let play shares your controller, not a separate player. One friend can control at a time. Stop sharing revokes the invite and disconnects everyone. Keep this tab visible. Sharing re-encodes video and uses upload bandwidth. Approved peers may learn your public IP; invite people you trust.</p></details></section>
 
 					<section id="update-panel" class="update-panel" aria-labelledby="update-heading">
 						<h3 id="update-heading">App updates</h3>

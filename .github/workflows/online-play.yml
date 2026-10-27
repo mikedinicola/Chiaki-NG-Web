@@ -17,7 +17,15 @@ jobs:
       - run: npm ci --prefix wasm/online --ignore-scripts
       - run: npm audit --prefix wasm/online --audit-level=low
       - run: node --test wasm/online/*.test.mjs
-      - run: bash -n wasm/online/deploy/setup.sh
+      - name: Check deploy script syntax
+        run: |
+          for file in wasm/online/deploy/{setup,start,connect-code}.sh; do bash -n "$file"; done
+      - name: Validate private setup code format
+        run: |
+          fixture=$(mktemp)
+          trap 'rm -f "$fixture"' EXIT
+          printf 'PLAY_DOMAIN=play.example.com\nHOST_KEY=%064d\n' 0 > "$fixture"
+          bash wasm/online/deploy/connect-code.sh "$fixture" | tail -1 | node --input-type=module -e 'import fs from "node:fs"; import "./wasm/www/online-protocol.js"; const s=ChiakiOnlineProtocol.setup(fs.readFileSync(0,"utf8")); if(s.server!=="https://play.example.com" || s.key!=="0".repeat(64)) process.exit(1);'
       - name: Validate Compose and compile service image
         env:
           PLAY_DOMAIN: play.example.com
