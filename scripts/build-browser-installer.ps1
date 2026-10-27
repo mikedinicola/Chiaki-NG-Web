@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.10.4',
+    [string]$Version = '1.11.0',
     [string]$CompilerPath,
     [switch]$AllowDirty
 )
@@ -50,7 +50,7 @@ try {
         Copy-Item -LiteralPath $file -Destination $destination
     }
     if (-not (Test-Path -LiteralPath "$payload/www/first-run.html")) { throw 'Stage/commit first-run.html before packaging.' }
-    foreach ($file in @('GETTING_STARTED.md','USER_GUIDE.md','BROWSER_SETUP.md','SECURITY_AUDIT.md','PRIVACY_REVIEW.md','WINDOWS_INSTALLER.md','ONLINE_PLAY.md')) {
+    foreach ($file in @('GETTING_STARTED.md','USER_GUIDE.md','BROWSER_SETUP.md','SECURITY_AUDIT.md','PRIVACY_REVIEW.md','WINDOWS_INSTALLER.md','ONLINE_PLAY.md','INTERFACE_GUIDE.md')) {
         if (Test-Path -LiteralPath "docs/$file") { Copy-Item -LiteralPath "docs/$file" -Destination "$payload/documentation/$file" }
     }
     New-Item -ItemType Directory -Path "$payload/documentation/images" -Force | Out-Null

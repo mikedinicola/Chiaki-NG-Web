@@ -3712,6 +3712,7 @@ function ensureAudioOut() {
 		audio.ctx = new AudioContext({ sampleRate: audio.rate || 48000, latencyHint: "interactive" });
 		audio.gain = audio.ctx.createGain();
 		audio.gain.connect(audio.ctx.destination);
+		globalThis.ChiakiUI?.syncAudio();
 		if (share.active && !share.isGuest && share.pcs.size) {
 			const hadAudio = !!share.audioDest;
 			attachShareAudio();
@@ -3799,7 +3800,7 @@ function stick(v) {
 }
 
 function deadzone(v, z) {
-	return Math.abs(v) < (z || 0.15) ? 0 : v;
+	return Math.abs(v) < (z ?? (globalThis.ChiakiUI?.preferences().deadzone ?? 15) / 100) ? 0 : v;
 }
 
 function axisAt(gp, i) {
@@ -5147,6 +5148,7 @@ function isPrivateIpv4(host) {
 
 function openSettingsTab(name) {
 	showView("settings");
+	document.querySelector(".settings-body").scrollTop = 0;
 	$("settings-tabs").querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
 	document.querySelectorAll(".tab-page").forEach((p) => p.classList.toggle("hidden", p.dataset.page !== name));
 }
@@ -6669,7 +6671,7 @@ function bindUi() {
 	$("settings-view").addEventListener("input", () => { applySettingsNow(); });
 	$("s-language").addEventListener("change", () => { applySettingsNow(); });
 
-	if (location.hash === "#updates") { openSettingsTab("general"); requestAnimationFrame(() => $("update-panel").scrollIntoView({ block: "start" })); }
+	if (location.hash === "#updates") { openSettingsTab("updates"); requestAnimationFrame(() => $("update-panel").scrollIntoView({ block: "start" })); }
 	else if (location.hash === "#video") openSettingsTab("video");
 	else if (location.hash === "#settings") showView("settings");
 

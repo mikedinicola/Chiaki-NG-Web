@@ -1,0 +1,25 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stream interface verification</title><link rel="stylesheet" href="/style.css"><script src="/appearance.js"></script><link rel="stylesheet" href="/interface.css"><div class="app"><section class="stream show-chrome"><header class="toolbar stream-bar">
+				<button class="tb-btn tb-close" id="btn-stop" type="button" data-i18n-title="stream.stop" title="Stop">×</button>
+				<span class="tb-brand" data-i18n="brand">Chiaki-NG Web Edition</span>
+				<div class="tb-spacer"></div>
+				<button class="tb-btn" id="btn-controls" type="button" aria-controls="controls-sidebar" aria-expanded="false" data-i18n-title="controls.toggle" title="Controls (`)">⌨</button><button class="tb-btn" id="btn-online-open" type="button" title="Host online play">Online play</button><button class="tb-btn hidden" id="btn-online-stop" type="button" title="Immediately disconnect all online guests">Stop online</button>
+				<button class="tb-btn tb-icon" id="btn-stream-share" type="button" data-i18n-title="share.menu" title="Share">
+					<img src="icons/share-24px.svg" alt="">
+				</button>
+				<button class="tb-btn tb-icon" id="btn-vpad" type="button" data-i18n-title="vpad.toggle" title="Virtual pad" aria-pressed="false">
+					<img src="icons/gamepad-24px.svg" alt="">
+				</button>
+				<button class="tb-btn tb-icon" id="btn-stream-fs" type="button" data-i18n-title="stream.fullscreen" title="Fullscreen" aria-pressed="false">
+					<img id="btn-stream-fs-icon" src="icons/fullscreen-24px.svg" alt="">
+				</button>
+				<button class="tb-btn tb-icon" id="btn-stream-settings" type="button" data-i18n-title="settingsBtn" title="Settings">
+					<img src="icons/settings-20px.svg" alt="">
+				</button>
+			</header><div class="stage" style="background:radial-gradient(ellipse at 28% 50%,#25434a,#101922 60%,#080d13)"><p style="position:absolute;left:7%;top:40%;color:#a8bacb;font:24px system-ui">Synthetic stream interface preview<br><small>No PlayStation connection</small></p></div><aside id="controls-sidebar" class="controls-sidebar" aria-labelledby="controls-title">
+				<div class="controls-heading"><h2 id="controls-title" data-i18n="controls.title">Controls</h2><button id="controls-close" type="button" data-i18n="controls.close">Close (`)</button></div>
+				<p id="controls-mode" class="hint"></p>
+				<p id="controls-stream-stats" class="hint" data-i18n="quality.statsWaiting">Video statistics appear when frames arrive.</p>
+				<dl id="controls-bindings" class="controls-bindings"></dl>
+				<p class="hint" data-i18n="controls.tip">Press ` again to hide this panel. F8 releases the cursor. Change bindings in Settings → Keys.</p>
+				<div id="controls-ls-status" class="hint hidden" data-i18n="ls.status">Lossless Scaling mode is prepared. Activate LSFG in the external app; its active state cannot be read here.</div>
+			</aside></section></div><div style="position:fixed;bottom:12px;left:12px;z-index:40"><button id="fixture-light">Light theme</button><button id="fixture-dark">Dark theme</button></div><script>const get=id=>document.getElementById(id);get('controls-mode').textContent='PC keyboard + mouse';get('controls-stream-stats').textContent='Received 38.2 Mbps · decoded 60 fps · 1920×1080';const rows=[['Cross','Space'],['Circle','Ctrl / C'],['Square','R'],['Triangle','E'],['Move','W A S D'],['Aim','Mouse'],['L1 / R1','Q / G'],['L2 / R2','Right / left click'],['PS','B'],['Share','N'],['Options','P'],['Release mouse','F8']];for(const [a,b]of rows){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=a;dd.textContent=b;get('controls-bindings').append(dt,dd)}get('controls-close').onclick=()=>get('controls-sidebar').classList.add('hidden');get('btn-controls').onclick=()=>get('controls-sidebar').classList.toggle('hidden');window.onkeydown=e=>{if(e.code==='Backquote')get('controls-sidebar').classList.toggle('hidden')};get('fixture-light').onclick=()=>ChiakiAppearance.set({theme:'light'});get('fixture-dark').onclick=()=>ChiakiAppearance.set({theme:'dark'});</script>

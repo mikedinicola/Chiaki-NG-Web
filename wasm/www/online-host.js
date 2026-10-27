@@ -102,7 +102,7 @@
 	};
 	get("online-stop").onclick = () => stop(); get("btn-online-stop").onclick = () => stop();
 	get("online-copy").onclick = async () => { try { await navigator.clipboard.writeText(invite); tell("Invite copied. Send it privately; each guest still needs approval."); } catch { get("online-invite").select(); tell("Copy the selected invite and send it privately."); } };
-	get("btn-online-open").onclick = () => openSettingsTab("general");
+	get("btn-online-open").onclick = () => openSettingsTab("online");
 	window.addEventListener("pagehide", () => stop());
 	setInterval(() => {
 		if (!active) return;

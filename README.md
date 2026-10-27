@@ -4,7 +4,7 @@
 
 <p align="center"><strong>Play your PS4 or PS5 on your PC, through a web browser.</strong><br>Your console runs the game. Your PC shows the picture and sends your controls back.</p>
 
-<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.4"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
+<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.11.0"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
 
 <p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml"><img src="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml/badge.svg" alt="Browser checks on Windows and Linux"></a></p>
 
@@ -17,8 +17,8 @@ Start with your **PC and PlayStation on the same home network**. The console mus
 | What you can do | Where to find it |
 |---|---|
 | Connect with a guided pairing screen | **+** on the home screen |
-| Use a controller or a familiar keyboard/mouse layout | **Settings → Keys** |
-| Choose clearer video or reduce noisy fog and dark scenes | **Settings → Stream** |
+| Use a controller or a familiar keyboard/mouse layout | **Settings → Keyboard & mouse** |
+| Choose clearer video or reduce noisy fog and dark scenes | **Settings → Picture quality** |
 | See controls and live picture statistics | Press **backtick (`)** while streaming |
 | Keep console addresses and IDs hidden | Hidden until you select **Show details** |
 
@@ -55,22 +55,20 @@ Keep that terminal open and visit **http://127.0.0.1:8090/**. That address means
 
 ## Take a look
 
-<p align="center"><img src="docs/images/first-run-guide.jpg" alt="Offline first-run guide with pairing, controls, picture settings and troubleshooting" width="1000"><br><em>The guide opens automatically for new users and is always available from the ? button.</em></p>
-
-Fresh screenshots from this fork. The pairing picture uses an **example address**; account and code fields are empty. Console addresses and IDs are masked.
-
-<p align="center"><img src="docs/images/stream-quality.jpg" alt="Stream settings with the clean-fog preset, sharpening and noise reduction" width="1000"><br><em>Pick a picture preset, then adjust sharpening and noise reduction to taste.</em></p>
+A fresh interface with light, dark and system themes, searchable settings, and a floating stream toolbar. [Explore the interface and new settings →](docs/INTERFACE_GUIDE.md)
 
 <table>
 <tr>
-<td width="50%" valign="top"><img src="docs/images/pair-console.jpg" alt="Guided pairing with empty account fields and an example address"><br><strong>Pair once.</strong> Instructions stay beside the fields you need.</td>
-<td width="50%" valign="top"><img src="docs/images/pc-controls.jpg" alt="Keyboard and mouse settings"><br><strong>Choose your controls.</strong> Use the PC preset or keep your own bindings.</td>
+<td width="50%" valign="top"><img src="docs/images/interface-light.png" alt="Light appearance with theme, accent and accessibility settings"><br><strong>A lighter space.</strong> Soft surfaces, clear controls and your choice of accent.</td>
+<td width="50%" valign="top"><img src="docs/images/interface-dark.png" alt="Dark appearance with grouped settings and sidebar navigation"><br><strong>Made for evenings.</strong> Dark surfaces with the same familiar layout.</td>
 </tr>
 </table>
 
+These screenshots use a clean local preview with no saved console or account information.
+
 ## Make it look and feel right
 
-**Start with a preset in Settings → Stream.** A higher bitrate lets the console send more picture data. It helps with compression, but the actual rate varies with what is happening on screen.
+**Start with a preset in Settings → Picture quality.** A higher bitrate lets the console send more picture data. It helps with compression, but the actual rate varies with what is happening on screen.
 
 | Preset | Use it for | Requested video |
 |---|---|---|
@@ -79,7 +77,7 @@ Fresh screenshots from this fork. The pairing picture uses an **example address*
 
 Restart after changing bitrate or codec. Too much noise reduction can soften fine details. Press **`** to see the video bitrate actually arriving. [Picture troubleshooting →](docs/BROWSER_SETUP.md#picture-quality-and-fog-noise)
 
-**For keyboard and mouse**, enable **Settings → Keys → PC keyboard + mouse controls**, then click the video to capture the cursor.
+**For keyboard and mouse**, enable **Settings → Keyboard & mouse → PC keyboard + mouse controls**, then click the video to capture the cursor.
 
 | Key | Action in the PC preset |
 |---|---|
@@ -91,7 +89,7 @@ Restart after changing bitrate or codec. Too much noise reduction can soften fin
 | **F8** | Release or capture the mouse |
 | **`** | Show or hide the controls sidebar |
 
-Games still receive controller inputs, so their button layouts and maximum turn speed apply. Adjust mouse sensitivity and dead-zone compensation in Keys if movement feels too slow or jumpy.
+Games still receive controller inputs, so their button layouts and maximum turn speed apply. Adjust mouse sensitivity and dead-zone compensation in Keyboard & mouse if movement feels too slow or jumpy.
 
 ## A few useful answers
 
