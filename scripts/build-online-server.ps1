@@ -1,4 +1,4 @@
-param([string]$Version = '1.11.0')
+param([string]$Version = '1.11.1')
 $ErrorActionPreference = 'Stop'
 $projectDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Push-Location $projectDir

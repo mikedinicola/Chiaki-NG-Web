@@ -1,17 +1,17 @@
 (() => {
 	const get = (id) => document.getElementById(id), preferences = ChiakiAppearance;
 	const pages = {
-		general: ["General", "Make it yours.", "Language and session behavior, with your preferences saved automatically.", "M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0"],
-		appearance: ["Appearance", "A little more you.", "Choose your look. Keep it calm, make it vivid, or let your device decide.", "M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.7h2a4 4 0 0 0 4-4A9 9 0 0 0 12 3M7 10h.01M10 6.5h.01M15 7h.01"],
-		video: ["Display", "The right view.", "Choose how video is decoded and how your game fits the screen.", "M4 4h16v12H4zM8 21h8m-4-5v5"],
-		stream: ["Picture quality", "Every detail, considered.", "Balance source detail, smooth motion and latency. Start with a preset, then fine-tune.", "M4 5h16v14H4zM4 14l5-5 4 4 3-3 4 4"],
-		audio: ["Audio", "Sound, your way.", "Adjust playback volume and buffering without changing your system volume.", "M4 9h4l5-5v16l-5-5H4zM17 8a7 7 0 0 1 0 8m3-11a11 11 0 0 1 0 14"],
-		consoles: ["Consoles", "Your consoles. One place.", "Manage saved PlayStations. Account identifiers stay hidden until you reveal them.", "M5 4h14v16H5zM8 17h8M8 7h8"],
-		keys: ["Keyboard & mouse", "Find your flow.", "Your familiar PC controls, adapted for PlayStation. Customize bindings and mouse feel.", "M3 6h18v12H3zM6 9h1m3 0h1m3 0h1m3 0h.01M6 12h1m3 0h1m3 0h1m3 0h.01M7 15h10"],
-		controllers: ["Controllers", "Ready, player one.", "Connect a controller, adjust its dead zone, or make the virtual pad your own.", "M7 7h10c4 0 5 12 2 12l-4-4H9l-4 4C2 19 3 7 7 7zM7 10v4m-2-2h4m7-1h.01m2 2h.01"],
-		online: ["Online play", "Better with company.", "Private invitations. Your approval. A separate server keeps the console app private.", "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M2 21v-2a7 7 0 0 1 14 0v2m1-16a4 4 0 0 1 0 8m2 3a5 5 0 0 1 3 5"],
-		updates: ["App updates", "Always moving forward.", "Check for new releases and choose when to install. Your settings and pairings stay yours.", "M20 8a9 9 0 1 0 1 8M20 3v5h-5M12 8v5l3 2"],
-		config: ["Connection", "Under the surface.", "Advanced connection and account options. Most people can leave the defaults in place.", "M5 8h14M8 4v8m-3 5h14m-3-4v8"]
+		general: ["General", "M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0"],
+		appearance: ["Appearance", "M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.7h2a4 4 0 0 0 4-4A9 9 0 0 0 12 3M7 10h.01M10 6.5h.01M15 7h.01"],
+		video: ["Display", "M4 4h16v12H4zM8 21h8m-4-5v5"],
+		stream: ["Picture quality", "M4 5h16v14H4zM4 14l5-5 4 4 3-3 4 4"],
+		audio: ["Audio", "M4 9h4l5-5v16l-5-5H4zM17 8a7 7 0 0 1 0 8m3-11a11 11 0 0 1 0 14"],
+		consoles: ["Consoles", "M5 4h14v16H5zM8 17h8M8 7h8"],
+		keys: ["Keyboard & mouse", "M3 6h18v12H3zM6 9h1m3 0h1m3 0h1m3 0h.01M6 12h1m3 0h1m3 0h1m3 0h.01M7 15h10"],
+		controllers: ["Controllers", "M7 7h10c4 0 5 12 2 12l-4-4H9l-4 4C2 19 3 7 7 7zM7 10v4m-2-2h4m7-1h.01m2 2h.01"],
+		online: ["Online play", "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M2 21v-2a7 7 0 0 1 14 0v2m1-16a4 4 0 0 1 0 8m2 3a5 5 0 0 1 3 5"],
+		updates: ["App updates", "M20 8a9 9 0 1 0 1 8M20 3v5h-5M12 8v5l3 2"],
+		config: ["Connection", "M5 8h14M8 4v8m-3 5h14m-3-4v8"]
 	};
 	const body = document.querySelector(".settings-body"), nav = get("settings-tabs");
 	function page(name) {
@@ -46,17 +46,13 @@
 		let button = nav.querySelector(`[data-tab="${name}"]`);
 		if (!button) { button = document.createElement("button"); button.type = "button"; button.dataset.tab = name; nav.append(button); }
 		button.removeAttribute("data-i18n"); button.textContent = info[0];
-		const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${info[3]}"/></svg>`;
+		const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${info[1]}"/></svg>`;
 		button.style.setProperty("--nav-icon", `url("data:image/svg+xml,${encodeURIComponent(svg)}")`);
 		nav.append(button);
-		const header = document.createElement("header"); header.className = "page-heading";
-		const eyebrow = document.createElement("span"); eyebrow.className = "eyebrow"; eyebrow.textContent = "YOUR PLAY SPACE / " + info[0];
-		const title = document.createElement("h2"); title.textContent = info[1];
-		const intro = document.createElement("p"); intro.textContent = info[2]; header.append(eyebrow,title,intro); el.prepend(header);
 		button.addEventListener("click", () => { clearSearch(); openSettingsTab(name); syncNavigation(); });
 	}
 	function groupRows(name, title) {
-		const el = page(name), children = Array.from(el.children).filter((node) => !node.matches(".page-heading,.settings-group"));
+		const el = page(name), children = Array.from(el.children).filter((node) => !node.matches(".settings-group"));
 		if (!children.length) return;
 		const group = document.createElement("section"); group.className = "settings-group";
 		const heading = document.createElement("h3"); heading.textContent = title; group.append(heading); for (const child of children) group.append(child); el.append(group);
@@ -66,9 +62,9 @@
 	get("s-preset").closest(".form-row").classList.add("hidden");
 	page("video").querySelector('[data-i18n="video.legacyPreset"]')?.classList.add("hidden");
 	const presetGroup = document.createElement("section"); presetGroup.className = "settings-group";
-	presetGroup.innerHTML = "<h3>Start with a feeling.</h3><div class='preset-grid'></div><p class='ui-section-note'>Source picture keeps the decoded image untouched. High quality adds crispness; Clean fog gently reduces noise. Reconnect after changing stream quality.</p>";
+	presetGroup.innerHTML = "<h3>Picture presets</h3><div class='preset-grid'></div><p class='ui-section-note'>Source picture keeps the decoded image untouched. High quality adds crispness; Clean fog gently reduces noise. Reconnect after changing stream quality.</p>";
 	for (const id of ["quality-source","quality-lan","quality-fog"]) presetGroup.querySelector(".preset-grid").append(get(id));
-	page("stream").querySelector(".page-heading").after(presetGroup);
+	page("stream").prepend(presetGroup);
 	const streamRows = Array.from(page("stream").children).filter((node) => node.matches(".form-row"));
 	let streamAnchor = presetGroup;
 	for (const [title, rows] of [["Stream format", streamRows.filter((row) => !row.querySelector("input[type=range]"))], ["Picture tuning", streamRows.filter((row) => row.querySelector("input[type=range]"))]]) {
