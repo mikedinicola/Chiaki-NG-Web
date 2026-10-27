@@ -9,6 +9,7 @@
 #endif
 [Setup]
 AppId={code:GetInstallIdentity}
+UsePreviousLanguage=no
 AppName=Chiaki-NG Web Browser
 AppVersion={#AppVersion}
 AppPublisher=Chiaki-NG Web community
