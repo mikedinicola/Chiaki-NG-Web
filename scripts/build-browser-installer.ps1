@@ -40,7 +40,7 @@ try {
     Copy-Item -LiteralPath "$nodeRoot/node.exe" -Destination "$payload/runtime/node.exe"
     Copy-Item -LiteralPath '.tools/relay-windows-static/x86_64-pc-windows-msvc/release/chiaki-relay.exe' -Destination "$payload/runtime/chiaki-relay.exe"
     foreach ($name in @('chiaki.js','chiaki.wasm')) { Copy-Item -LiteralPath "build-wasm/wasm/$name" -Destination "$payload/core/$name" }
-    foreach ($name in @('server.mjs','env.mjs','store.mjs','share.mjs','rust-relay.mjs','updater.mjs')) { Copy-Item -LiteralPath "wasm/proxy/$name" -Destination "$payload/proxy/$name" }
+    foreach ($name in @('server.mjs','env.mjs','store.mjs','share.mjs','rust-relay.mjs','updater.mjs','parsec.mjs')) { Copy-Item -LiteralPath "wasm/proxy/$name" -Destination "$payload/proxy/$name" }
     # Only tracked/staged public UI source is allowed into the distribution.
     foreach ($file in @(git ls-files wasm/www)) {
         if ($file -like 'wasm/www/downloads/*') { continue }

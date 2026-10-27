@@ -70,6 +70,8 @@ add_custom_command(TARGET chiaki-wasm POST_BUILD
 		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/store.mjs"
 		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/share.mjs"
 		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/rust-relay.mjs"
+		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/updater.mjs"
+		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/parsec.mjs"
 		"${CMAKE_CURRENT_BINARY_DIR}"
 	COMMAND "${CMAKE_COMMAND}" -E copy_directory
 		"${CMAKE_CURRENT_SOURCE_DIR}/proxy/certs"
