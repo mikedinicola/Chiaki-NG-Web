@@ -101,10 +101,10 @@
 		if (event.key === "Escape" && event.target === search) { clearSearch(); search.blur(); }
 	});
 	const library = document.createElement("section"); library.className = "library-intro";
-	library.innerHTML = '<div class="library-topline"><div><span class="eyebrow">PLAY, BEAUTIFULLY.</span><h1>Your PlayStation.<br>Your favorite place.</h1><p>Pick up where you left off. Everything you need, a little closer.</p></div><div class="library-actions"><button type="button" id="ui-add-console">Add a console</button><button type="button" id="ui-library-settings">Customize your space</button></div></div><div class="library-label"><span>Your consoles</span><span>LOCAL REMOTE PLAY</span></div>';
+	library.innerHTML = '<div class="library-topline"><h1>Consoles</h1><div class="library-actions"><button type="button" id="ui-add-console">Add a console</button><button type="button" id="ui-library-settings">Appearance</button></div></div>';
 	get("welcome").prepend(library); get("ui-add-console").onclick = () => get("btn-add").click(); get("ui-library-settings").onclick = () => openSettingsTab("appearance");
 	const empty = document.createElement("section"); empty.className = "empty-library";
-	empty.innerHTML = '<div class="empty-symbol" aria-hidden="true">◈</div><h2>A little setup. A lot of play.</h2><p>Add your PS5 or PS4 once. After that, your next session is just a click away.</p><button type="button">Connect your first console</button>';
+	empty.innerHTML = '<div class="empty-symbol" aria-hidden="true">◈</div><h2>No consoles added</h2><p>Add a PS5 or PS4 to start Remote Play.</p><button type="button">Connect your first console</button>';
 	empty.querySelector("button").onclick = () => get("btn-add").click(); get("hosts").after(empty);
 	const refreshEmpty = () => { empty.hidden = get("hosts").children.length > 0; }; new MutationObserver(refreshEmpty).observe(get("hosts"), { childList: true }); refreshEmpty();
 	const metrics = document.createElement("div"); metrics.id = "ui-stream-metrics"; metrics.hidden = true; get("stream-view").append(metrics);

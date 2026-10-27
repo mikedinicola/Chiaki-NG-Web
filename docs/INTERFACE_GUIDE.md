@@ -6,7 +6,7 @@ It is a browser interface, not an Apple product or native iOS application.
 
 ## Find your way
 
-The library has **Add a console** and **Customize your space** actions. Settings
+The library has **Add a console** and **Appearance** actions. Settings
 use a sidebar on desktop and a horizontally scrollable category strip on phones.
 **Search settings** finds matching controls and takes you straight to them. Press
 `/` while in Settings to focus search, or Escape to clear it.

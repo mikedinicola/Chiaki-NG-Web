@@ -82,3 +82,6 @@ button:disabled{cursor:default;opacity:.44}a{color:var(--accent)}
 .controls-sidebar{bottom:auto;height:fit-content;max-height:calc(100dvh - 104px);padding:20px;overflow:auto;scrollbar-width:thin}.controls-heading{position:sticky;top:-20px;background:var(--surface);z-index:1;padding:6px 0 12px}.controls-heading h2{margin:0}.controls-bindings{grid-template-columns:minmax(0,1fr) minmax(100px,1fr);margin:12px 0;font-size:13px}.controls-bindings dt,.controls-bindings dd{padding:7px 0;line-height:1.4}.controls-bindings dd{font-variant-numeric:tabular-nums}.controls-sidebar .hint{line-height:1.5}.controls-sidebar #controls-stream-stats{padding:10px;margin-bottom:10px}
 @media(max-width:700px){.controls-sidebar{bottom:auto;max-height:calc(100dvh - 90px)}.stream #btn-controls{width:36px;min-width:36px}.add-card .modal-actions{padding-top:12px}.modal-actions button{padding:10px 12px}}
 .settings-body .accent-choice{min-height:32px!important;height:32px!important;min-width:32px!important;width:32px!important}
+
+.library-intro{margin-bottom:24px}.library-topline{align-items:center}.library-intro h1{font-size:28px;letter-spacing:-.035em;line-height:1.2;margin:0}.library-actions{margin-top:0}
+@media(max-width:700px){.library-topline{display:flex;flex-wrap:wrap;gap:16px}.library-intro h1{font-size:24px}}

@@ -19,7 +19,7 @@ not an anonymous public gaming service.
   normal DNS record; HTTP-only CDN proxies cannot carry the TURN UDP traffic.
 - Docker Engine and the Docker Compose plugin installed on the VPS using
   [Docker's official Linux installation instructions](https://docs.docker.com/engine/install/).
-- Chiaki-NG Web **1.12.0 or newer** on the gaming PC. Keep the PS5 and PC on
+- Chiaki-NG Web **1.12.1 or newer** on the gaming PC. Keep the PS5 and PC on
   your usual home network. No ports need forwarding on the home router.
 
 The VPS is separate from your gaming PC. Do not publish port 8090, the local
@@ -28,7 +28,7 @@ tunnel or reverse proxy.
 
 ## Set up the public service
 
-1. Download the **Chiaki-Online-Server-1.12.0.zip** release asset and extract it
+1. Download the **Chiaki-Online-Server-1.12.1.zip** release asset and extract it
    on the VPS. Alternatively clone this repository. The ZIP contains only the
    invitation service, its guest page and the required shared browser helpers.
 2. In a terminal inside the extracted folder, run:
