@@ -2082,3 +2082,9 @@ html.handheld .tb-close { font-size: 40px; }
 .update-panel h3{margin:0 0 10px}.update-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px}
 .update-actions a{color:#26b8ff}.update-panel label{display:flex;gap:8px;align-items:center}
 .update-notice{position:fixed;bottom:60px;left:20px;z-index:5;padding:12px 16px;background:#164569;color:#fff;border-radius:8px}
+#online-panel label{flex-wrap:wrap;gap:10px;margin:12px 0}
+#online-panel input{box-sizing:border-box;min-width:0;width:min(100%,420px);padding:9px 12px;background:#303030;color:#eee;border:1px solid #666;border-radius:5px;font:inherit}
+#online-panel select,.update-panel button{padding:8px 12px;background:#383838;color:#eee;border:1px solid #666;border-radius:5px;font:inherit}
+.update-panel button:disabled{opacity:.45;cursor:default}
+#online-panel a{color:#38baff}#online-guests{padding-left:0;list-style:none}
+#online-guests li{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0;padding:10px;background:#303030;border-radius:6px}
