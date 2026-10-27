@@ -684,7 +684,7 @@ function sessionCookie(token, maxAgeSec, secure) {
 	return parts.join("; ");
 }
 
-const shareHub = createShareHub({ store, decodeWsFrame, wsAccept, readCookie });
+const shareHub = createShareHub({ store, decodeWsFrame, wsAccept, readCookie, authEnabled: cfg.authEnabled });
 
 class HomeAgents {
 	constructor() {
@@ -1141,6 +1141,9 @@ function requireUser(req, res) {
 async function handleApi(req, res, reqUrl) {
 	const secure = req.socket?.encrypted || req.headers["x-forwarded-proto"] === "https";
 	const route = req.method + " " + reqUrl.pathname;
+	if (reqUrl.pathname === "/api/share" && ((!cfg.authEnabled && !localUpdateRequest({ method: "GET", socket: req.socket, headers: req.headers })) || (req.method !== "GET" && (!req.headers.origin || !sameOrigin(req))))) {
+		json(res, 403, { error: "Local same-origin sharing management required." }); return true;
+	}
 	if (reqUrl.pathname.startsWith("/api/update/")) {
 		if (!localUpdateRequest(req)) { json(res, 403, { error: "Updates require a same-origin local browser request." }); return true; }
 		try {
@@ -1415,7 +1418,19 @@ async function handleApi(req, res, reqUrl) {
 	return false;
 }
 
+function localHostAllowed(req) {
+	const bind = process.env.CHIAKI_WASM_BIND || "127.0.0.1";
+	if (req.socket.encrypted || !["127.0.0.1", "localhost", "::1"].includes(bind)) return true;
+	const allowed = new Set([`127.0.0.1:${req.socket.localPort}`, `localhost:${req.socket.localPort}`, `[::1]:${req.socket.localPort}`]);
+	if (!allowed.has(req.headers.host)) return false;
+	if (req.headers.origin) {
+		try { const origin = new URL(req.headers.origin); if (origin.protocol !== "http:" || !allowed.has(origin.host)) return false; } catch { return false; }
+	}
+	return true;
+}
+
 function handleRequest(req, res) {
+	if (!localHostAllowed(req)) { res.writeHead(403, { "Content-Type": "text/plain", "Cache-Control": "no-store" }).end("Local app host/origin refused"); return; }
 	if (req.url === "/health") {
 		res.writeHead(200, { "Content-Type": "text/plain", "X-Chiaki-App": "chiaki-ng-web", "Cache-Control": "no-store" });
 		res.end("ok");
@@ -1527,7 +1542,7 @@ function sameOrigin(req) {
 
 function attachUpgrade(server) {
 	server.on("upgrade", (req, socket, head) => {
-		if (!sameOrigin(req)) {
+		if (!localHostAllowed(req) || !sameOrigin(req)) {
 			socket.destroy();
 			return;
 		}
@@ -1684,6 +1699,7 @@ export async function startServers() {
 		bindHost,
 		async close() {
 			stopUpdates();
+			shareHub.close();
 			rustRelay?.close();
 			rustRelay = null;
 			const servers = [httpServer, ...httpsServers];

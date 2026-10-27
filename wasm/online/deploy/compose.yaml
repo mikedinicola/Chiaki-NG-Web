@@ -1,0 +1,52 @@
+services:
+  broker:
+    build:
+      context: ../../..
+      dockerfile: wasm/online/Dockerfile
+    environment:
+      PUBLIC_ORIGIN: https://${PLAY_DOMAIN:?Run setup.sh first}
+      HOST_KEY: ${HOST_KEY:?Run setup.sh first}
+      TURN_SECRET: ${TURN_SECRET:?Run setup.sh first}
+      TURN_URLS: turn:${PLAY_DOMAIN}:3478?transport=udp,turn:${PLAY_DOMAIN}:3478?transport=tcp
+      TRUST_PROXY: "1"
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 256m
+    # Deliberately no published port: only Caddy can reach this container.
+  caddy:
+    image: caddy:2.11.7-alpine
+    environment:
+      PLAY_DOMAIN: ${PLAY_DOMAIN}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 256m
+  turn:
+    image: coturn/coturn:4.18.0-r0
+    network_mode: host
+    user: "65534:65534"
+    entrypoint: [turnserver]
+    command: ["-c", "/etc/turnserver.conf"]
+    volumes:
+      - ./secrets/turnserver.conf:/etc/turnserver.conf:ro
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp:size=16m]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 128m
+volumes:
+  caddy_data:
+  caddy_config:

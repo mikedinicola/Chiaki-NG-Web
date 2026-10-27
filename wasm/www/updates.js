@@ -48,8 +48,9 @@
 		if (!state?.latest || !confirm("Install version " + state.latest.version + "? This closes any active stream and restarts Chiaki. Your pairings and settings will be kept.")) return;
 		action("install", { version: state.latest.version });
 	};
-	get("update-notice").onclick = () => openSettingsTab("general");
-	window.addEventListener("hashchange", () => { if (location.hash === "#updates") openSettingsTab("general"); });
+	const open = () => { openSettingsTab("general"); get("update-panel").scrollIntoView({ block: "start" }); };
+	get("update-notice").onclick = open;
+	window.addEventListener("hashchange", () => { if (location.hash === "#updates") open(); });
 	refresh();
 	async function poll() {
 		if (!document.hidden) await refresh();

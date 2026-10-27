@@ -24,10 +24,11 @@ function encodeWsText(text) {
 
 const GUEST_TO_HOST = new Set(["offer", "answer", "ice", "pad", "pli", "bye"]);
 
-export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie }) {
+export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie, authEnabled = true }) {
 	const rooms = new Map();
 
 	function send(socket, obj) {
+		if (socket.writableLength > 128 * 1024) { socket.destroy(); return; }
 		try { socket.write(encodeWsText(JSON.stringify(obj))); }
 		catch {}
 	}
@@ -71,9 +72,15 @@ export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie }) {
 	function onMessage(socket, raw) {
 		const meta = socket._share;
 		if (!meta) return;
+		const rights = store.getShareByToken(meta.token);
+		if (!rights?.active) { socket.destroy(); return; }
+		const now = Date.now();
+		if (now - meta.at > 1000) { meta.at = now; meta.messages = 0; }
+		if (++meta.messages > 100) { socket.destroy(); return; }
 		let msg;
 		try { msg = JSON.parse(String(raw)); }
 		catch { return; }
+		if (!msg || typeof msg !== "object" || Array.isArray(msg)) return;
 		const room = rooms.get(meta.token);
 		if (!room) return;
 		if (meta.role === "host") {
@@ -87,6 +94,14 @@ export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie }) {
 			return;
 		}
 		if (!GUEST_TO_HOST.has(msg.type)) return;
+		if (msg.type === "offer") return;
+		if (msg.type === "pad") {
+			if (!rights.vpad && !rights.gamepad) return;
+			const clamp = (v, min, max) => Number.isFinite(v) ? Math.max(min, Math.min(max, Math.round(v))) : 0;
+			msg = { type: "pad", buttons: clamp(msg.buttons, 0, 65535) & 0x0fff,
+				l2: clamp(msg.l2, 0, 255), r2: clamp(msg.r2, 0, 255), lx: clamp(msg.lx, -32767, 32767), ly: clamp(msg.ly, -32767, 32767),
+				rx: clamp(msg.rx, -32767, 32767), ry: clamp(msg.ry, -32767, 32767) };
+		}
 		if (room.host) send(room.host, { ...msg, rights: undefined, from: meta.id });
 	}
 
@@ -104,7 +119,9 @@ export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie }) {
 			}
 			role = "guest";
 		} else {
-			const user = store.userBySession(readCookie(req, "chiaki_sid")) || store.ensureLocalUser();
+			const peer = req.socket?.remoteAddress;
+			const local = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(peer);
+			const user = authEnabled ? store.userBySession(readCookie(req, "chiaki_sid")) : local ? store.ensureLocalUser() : null;
 			if (!user) {
 				socket.write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n");
 				socket.destroy();
@@ -130,8 +147,9 @@ export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie }) {
 			"\r\n"
 		);
 		const room = roomOf(share.token);
+		if (role === "guest" && room.guests.size >= 4) { socket.destroy(); return; }
 		const id = crypto.randomBytes(8).toString("hex");
-		socket._share = { role, token: share.token, id };
+		socket._share = { role, token: share.token, id, at: Date.now(), messages: 0 };
 		if (role === "host") {
 			if (room.host && room.host !== socket) {
 				try { room.host.end(); } catch {}
@@ -154,9 +172,12 @@ export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie }) {
 
 		let acc = Buffer.alloc(0);
 		socket.on("data", (chunk) => {
+			if (acc.length + chunk.length > 65536) { socket.destroy(); return; }
 			acc = Buffer.concat([acc, chunk]);
 			for (;;) {
-				const frame = decodeWsFrame(acc);
+				if (acc.length >= 2 && (!(acc[0] & 128) || (acc[0] & 112) || !(acc[1] & 128))) { socket.destroy(); return; }
+				let frame;
+				try { frame = decodeWsFrame(acc); } catch { socket.destroy(); return; }
 				if (!frame) break;
 				acc = frame.rest;
 				if (frame.opcode === 0x8) {
@@ -165,6 +186,7 @@ export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie }) {
 					return;
 				}
 				if (frame.opcode === 0x9) {
+					if (frame.payload.length > 125) { socket.destroy(); return; }
 					const pong = Buffer.from(frame.payload);
 					socket.write(Buffer.concat([Buffer.from([0x8a, pong.length]), pong]));
 					continue;
@@ -177,5 +199,12 @@ export function createShareHub({ store, decodeWsFrame, wsAccept, readCookie }) {
 		socket.on("error", () => dropSocket(socket));
 	}
 
-	return { attach, viewerCount, rightsOf };
+	const audit = setInterval(() => {
+		for (const [token, room] of rooms) {
+			if (store.getShareByToken(token)?.active) continue;
+			for (const peer of [room.host, ...room.guests.values()]) if (peer) { peer.destroy(); dropSocket(peer); }
+			rooms.delete(token);
+		}
+	}, 1000); audit.unref();
+	return { attach, viewerCount, rightsOf, close() { clearInterval(audit); for (const room of rooms.values()) for (const socket of [room.host, ...room.guests.values()]) socket?.destroy(); rooms.clear(); } };
 }

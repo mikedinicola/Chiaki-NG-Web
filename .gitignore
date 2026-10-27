@@ -64,3 +64,7 @@ wasm/proxy/certs/*.key
 /.tools/
 /dist-browser/
 /wasm/relay-rust/target/
+
+/wasm/online/node_modules/
+/wasm/online/deploy/.env
+/wasm/online/deploy/secrets/

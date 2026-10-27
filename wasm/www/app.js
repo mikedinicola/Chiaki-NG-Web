@@ -2518,14 +2518,15 @@ function shareConnectHost() {
 			else if (pc) try { await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {}
 		}
 		if (msg.type === "pad" && msg.from)
-			share.guestPads.set(msg.from, msg);
+			share.guestPads.set(msg.from, { ...msg, receivedAt: performance.now() });
 		if (msg.type === "pli") shareForceKeyframes();
 	};
-	ws.onclose = () => { if (share.ws === ws) share.ws = null; };
+	ws.onclose = () => { if (share.ws === ws) { share.ws = null; share.active = false; shareDisconnectHost(); updateShareBanners(); } };
 	ws.onerror = () => {};
 }
 
 function shareOnStreaming(on) {
+	globalThis.ChiakiOnline?.streamState(on);
 	updateShareBanners();
 	if (!share.active || share.isGuest) return;
 	shareBroadcastState();
@@ -2543,6 +2544,7 @@ function mergeGuestPad(buttons, l2, r2, lx, ly, rx, ry) {
 	if (!share.active || share.isGuest || share.paused || (!share.vpad && !share.gamepad))
 		return { buttons, l2, r2, lx, ly, rx, ry };
 	for (const p of share.guestPads.values()) {
+		if (performance.now() - p.receivedAt > 250) continue;
 		const src = filterPadByVpadKeys(p, share.vpadKeys);
 		buttons |= Number(src.buttons) || 0;
 		l2 = Math.max(l2, Number(src.l2) || 0);
@@ -2667,6 +2669,11 @@ async function bootGuest(token) {
 	};
 	const ws = new WebSocket(shareWsUrl(token));
 	share.ws = ws;
+	ws.onclose = () => {
+		pc.close(); share.vpad = share.gamepad = false; share.hostStreaming = false;
+		if (v) { if (v.srcObject) for (const track of v.srcObject.getTracks()) track.stop(); v.srcObject = null; }
+		syncVpadUi(); refreshGuestOverlay();
+	};
 	ws.onmessage = async (ev) => {
 		let msg;
 		try { msg = JSON.parse(ev.data); } catch { return; }
@@ -3452,6 +3459,7 @@ async function configureDecoder(epoch) {
 			}
 			try {
 				videoRenderer.draw(frame, d, settings.sharpen, settings.denoise);
+				try { globalThis.ChiakiOnline?.frame(frame); } catch {}
 				videoStats.decoded();
 				try { pushShareFrame(frame); } catch {}
 			} finally { frame.close(); }
@@ -4480,6 +4488,13 @@ function pollInput() {
 		if (vpadStickActive("rs")) { rx = vpad.rx; ry = vpad.ry; }
 	}
 	({ buttons, l2, r2, lx, ly, rx, ry } = mergeGuestPad(buttons, l2, r2, lx, ly, rx, ry));
+ const onlinePad = globalThis.ChiakiOnline?.pad();
+ if (onlinePad) {
+  buttons |= onlinePad.buttons; l2 = Math.max(l2, onlinePad.l2); r2 = Math.max(r2, onlinePad.r2);
+  if (onlinePad.lx || onlinePad.ly) { lx = onlinePad.lx; ly = onlinePad.ly; }
+  if (onlinePad.rx || onlinePad.ry) { rx = onlinePad.rx; ry = onlinePad.ry; }
+ }
+
 	const useTouch = settings.mouseTouchEnabled !== false
 		&& !settings.pcControls && settings.mouseStick === "none"
 		&& !mouse0Mapped()
@@ -6654,7 +6669,7 @@ function bindUi() {
 	$("settings-view").addEventListener("input", () => { applySettingsNow(); });
 	$("s-language").addEventListener("change", () => { applySettingsNow(); });
 
-	if (location.hash === "#updates") openSettingsTab("general");
+	if (location.hash === "#updates") { openSettingsTab("general"); requestAnimationFrame(() => $("update-panel").scrollIntoView({ block: "start" })); }
 	else if (location.hash === "#video") openSettingsTab("video");
 	else if (location.hash === "#settings") showView("settings");
 

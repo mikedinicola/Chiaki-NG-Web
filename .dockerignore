@@ -1,0 +1,13 @@
+**
+!wasm/
+!wasm/online/
+!wasm/online/Dockerfile
+!wasm/online/package.json
+!wasm/online/package-lock.json
+!wasm/online/server.mjs
+!wasm/online/rooms.mjs
+!wasm/online/public/
+!wasm/online/public/**
+!wasm/www/
+!wasm/www/online-protocol.js
+!wasm/www/pc-controls.js

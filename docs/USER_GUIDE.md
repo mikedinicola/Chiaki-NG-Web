@@ -38,3 +38,8 @@ This guide is also included offline in the app. Open it with the **?** button.
 ## App updates
 
 Open **Settings → General → App updates** or use the tray menu. Checks run at startup and every six hours; the checkbox disables automatic checking. Choose **Download and install** after finishing your stream. The installer is verified before the app closes, updates and reopens. Pairings and settings stay in place. Install 1.10.3 once to enable this; portable/source builds use the GitHub download. Browser community previews are included.
+
+
+## Play online with friends
+
+Start a console stream and press **Online play**, or open **Settings → General → Host online play**. The separate [Online Play guide](ONLINE_PLAY.md) covers the one-time public server setup. Every guest needs approval; one guest at a time shares your controller. Stop online to revoke the session. No console keys or desktop access are shared.

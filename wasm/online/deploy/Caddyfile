@@ -1,0 +1,7 @@
+{$PLAY_DOMAIN} {
+  # No access log: invitation credentials and SDP are never recorded here.
+  reverse_proxy broker:3000 {
+    header_up X-Real-IP {remote_host}
+  }
+  header Strict-Transport-Security "max-age=31536000"
+}

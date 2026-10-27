@@ -6,8 +6,8 @@ It does not use Electron or its embedded runtime.
 
 ## Install
 
-1. Download `Chiaki-NG-Web-Setup-1.10.3-x64.exe` from the
-   [browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.3).
+1. Download `Chiaki-NG-Web-Setup-1.10.4-x64.exe` from the
+   [browser release](https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.4).
 2. Run it and follow the setup wizard. It installs for your Windows account;
    administrator access is not required. The desktop shortcut is optional.
 3. Open **Chiaki-NG Web** from Start. The first-run guide appears for a new
@@ -82,7 +82,7 @@ It does not connect to a PlayStation or use the developer's data.
 
 ## Updates inside the app
 
-Install version 1.10.3 once to enable the updater. Open **Settings → General → App updates**, or right-click the tray icon and choose **Check for updates**. Automatic checks run about 30 seconds after starting the local server and every six hours while it remains open. Turn off the checkbox to disable them; **Check now** still works.
+Install version 1.10.4 once to enable the updater. Open **Settings → General → App updates**, or right-click the tray icon and choose **Check for updates**. Automatic checks run about 30 seconds after starting the local server and every six hours while it remains open. Turn off the checkbox to disable them; **Check now** still works.
 
 The updater selects the newest numbered `browser-v` release from this repository, including community previews. It ignores native/non-browser releases and older versions. A home-screen notice appears when a newer browser installer is available. Read its release notes, then choose **Download and install** when you have finished playing. This closes active streams and restarts the app. Existing browser settings, registrations and separate user data are preserved.
 

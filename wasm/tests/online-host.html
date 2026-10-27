@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>Online play synthetic host</title>
+<h1>Synthetic online host test</h1><p>No PlayStation connection. Real production host client, synthetic pictures.</p>
+<label>Server <input id="online-server" value="http://127.0.0.1:8100"></label><label>Fixture host key <input id="online-key" type="password" value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"></label>
+<select id="online-minutes"><option value="5">5 minutes</option></select><select id="online-quality"><option value="720">720p</option></select>
+<button id="online-start">Create private invite</button><button id="online-stop" disabled>Stop and revoke everyone</button><button id="online-copy" disabled>Copy invite</button>
+<input id="online-invite" readonly><p id="online-status"></p><ul id="online-guests"></ul><button id="btn-online-stop" hidden>Emergency stop</button><button id="btn-online-open">Settings</button>
+<canvas id="synthetic" width="320" height="180"></canvas><pre id="diagnostic">No input yet</pre>
+<script>const streaming=true,audio={};function openSettingsTab(){}</script>
+<script src="/online-protocol.js"></script><script src="/online-host.js"></script><script>
+const fixtureCanvas=document.querySelector('canvas'),fixtureContext=fixtureCanvas.getContext('2d');let ticks=0,accepted=0;
+setInterval(()=>{fixtureContext.fillStyle=`hsl(${ticks++%360} 60% 45%)`;fixtureContext.fillRect(0,0,320,180);const f=new VideoFrame(fixtureCanvas,{timestamp:ticks*16667});ChiakiOnline.frame(f);f.close();const pad=ChiakiOnline.pad();if(pad&&(pad.buttons||pad.lx||pad.ly))accepted++;document.querySelector('#diagnostic').textContent=JSON.stringify({accepted,current:pad});},16);
+</script>

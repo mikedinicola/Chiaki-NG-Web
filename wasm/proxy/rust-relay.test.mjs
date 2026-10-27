@@ -336,6 +336,11 @@ test("desktop-managed server exposes its identity and exits when launcher stdin 
 	const health = await fetch(`http://127.0.0.1:${port}/health`);
 	assert.equal(health.headers.get("x-chiaki-app"), "chiaki-ng-web");
 	assert.equal(await health.text(), "ok");
+	assert.equal((await fetch(`http://127.0.0.1:${port}/health`, { headers: { Origin: "https://evil.example" } })).status, 403);
+	const rebindStatus = await new Promise((resolve, reject) => {
+		http.get({ hostname: "127.0.0.1", port, path: "/health", headers: { Host: "evil.example" } }, (response) => { response.resume(); resolve(response.statusCode); }).on("error", reject);
+	});
+	assert.equal(rebindStatus, 403);
 	const guide = await fetch(`http://127.0.0.1:${port}/first-run.html`);
 	assert.equal(guide.status, 200);
 	assert.match(await guide.text(), /All controls at a glance/);

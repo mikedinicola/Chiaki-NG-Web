@@ -67,4 +67,4 @@ jobs:
       - run: cargo install cargo-audit --version 0.22.2 --locked
       - run: cargo audit --file wasm/relay-rust/Cargo.lock
       - run: cargo build --release --locked --manifest-path wasm/relay-rust/Cargo.toml
-      - run: node --test wasm/proxy/runtime-checks.test.mjs wasm/proxy/rust-relay.test.mjs wasm/proxy/console-setup.test.mjs wasm/proxy/client-features.test.mjs
+      - run: node --test wasm/proxy/*.test.mjs

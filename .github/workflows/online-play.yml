@@ -1,0 +1,38 @@
+name: Online play security and deployment
+on:
+  push:
+    paths: ['wasm/online/**', 'wasm/www/online-*.js', '.dockerignore', '.github/workflows/online-play.yml']
+  pull_request:
+    paths: ['wasm/online/**', 'wasm/www/online-*.js', '.dockerignore', '.github/workflows/online-play.yml']
+permissions:
+  contents: read
+jobs:
+  online:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version-file: '.node-version'
+      - run: npm ci --prefix wasm/online --ignore-scripts
+      - run: npm audit --prefix wasm/online --audit-level=low
+      - run: node --test wasm/online/*.test.mjs
+      - run: bash -n wasm/online/deploy/setup.sh
+      - name: Validate Compose and compile service image
+        env:
+          PLAY_DOMAIN: play.example.com
+          HOST_KEY: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          TURN_SECRET: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        run: |
+          docker compose -f wasm/online/deploy/compose.yaml config --quiet
+          docker build -f wasm/online/Dockerfile -t chiaki-online-test .
+      - name: Container startup and public API isolation
+        run: |
+          set -euo pipefail
+          trap 'docker rm -f chiaki-online-test >/dev/null 2>&1 || true' EXIT
+          docker run -d --name chiaki-online-test --read-only --cap-drop=ALL --security-opt=no-new-privileges -p 127.0.0.1:8100:3000 -e ALLOW_LOCAL_TEST=1 -e PUBLIC_ORIGIN=http://127.0.0.1:8100 -e HOST_KEY=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa chiaki-online-test
+          for i in $(seq 1 30); do if curl -fsS http://127.0.0.1:8100/health; then break; fi; sleep 1; done
+          test "$(curl -fsS http://127.0.0.1:8100/health)" = ok
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8100/api/state)" = 404
+          docker run --rm --entrypoint turnserver coturn/coturn:4.18.0-r0 --version
+          docker run --rm -e PLAY_DOMAIN=play.example.com -v "$PWD/wasm/online/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2.11.7-alpine caddy adapt --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null

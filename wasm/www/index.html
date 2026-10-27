@@ -91,7 +91,7 @@
 				<button class="tb-btn tb-close" id="btn-stop" type="button" data-i18n-title="stream.stop" title="Stop">×</button>
 				<span class="tb-brand" data-i18n="brand">Chiaki-NG Web Edition</span>
 				<div class="tb-spacer"></div>
-				<button class="tb-btn" id="btn-controls" type="button" aria-controls="controls-sidebar" aria-expanded="false" data-i18n-title="controls.toggle" title="Controls (`)">⌨</button>
+				<button class="tb-btn" id="btn-controls" type="button" aria-controls="controls-sidebar" aria-expanded="false" data-i18n-title="controls.toggle" title="Controls (`)">⌨</button><button class="tb-btn" id="btn-online-open" type="button" title="Host online play">Online play</button><button class="tb-btn hidden" id="btn-online-stop" type="button" title="Immediately disconnect all online guests">Stop online</button>
 				<button class="tb-btn tb-icon" id="btn-stream-share" type="button" data-i18n-title="share.menu" title="Share">
 					<img src="icons/share-24px.svg" alt="">
 				</button>
@@ -140,6 +140,16 @@
 			</nav>
 			<div class="settings-body">
 				<div class="tab-page" data-page="general">
+<section id="online-panel" class="update-panel" aria-labelledby="online-heading">
+<h3 id="online-heading">Host online play</h3><p id="online-status" role="status" aria-live="polite">Start a console stream, then create an invite for friends.</p>
+<label>Invitation server <input id="online-server" type="url" placeholder="https://play.example.com" autocomplete="off"></label>
+<label>Server host key <input id="online-key" type="password" autocomplete="off" maxlength="64" placeholder="Paste from your server setup"></label>
+<div class="update-actions"><label>Invite expires in <select id="online-minutes"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option></select></label><label>Guest picture <select id="online-quality"><option value="720">720p60 · 6 Mbps</option><option value="1080">1080p60 · 10 Mbps</option></select></label></div>
+<div class="update-actions"><button id="online-start" type="button">Create private invite</button><button id="online-stop" type="button" disabled>Stop and revoke everyone</button></div>
+<label>Private invite <input id="online-invite" type="text" readonly autocomplete="off"></label><button id="online-copy" type="button" disabled>Copy invite</button><ul id="online-guests"></ul>
+<p class="hint">Every guest needs approval. Choose Watch only or Let play; one guest controls at a time. Input shares your controller, not a separate player. PS/system buttons stay local. Sharing re-encodes video and can add GPU load and latency. Keep the host tab visible.</p>
+<p class="hint">Requires your own public server and domain. See the <a href="https://github.com/SKIZZOO/Chiaki-NG-Web/blob/main/docs/ONLINE_PLAY.md" target="_blank" rel="noopener noreferrer">Online Play setup guide</a>. No home-router ports or console keys are shared. WebRTC may reveal public IPs to approved peers. Invite only people you trust.</p></section>
+
 					<section id="update-panel" class="update-panel" aria-labelledby="update-heading">
 						<h3 id="update-heading">App updates</h3>
 						<p id="update-status" role="status" aria-live="polite">Loading update status…</p>
@@ -715,7 +725,9 @@
 	<script src="pc-controls.js"></script>
 	<script src="video-renderer.js"></script>
 	<script src="video-pipeline.js"></script>
+<script src="online-protocol.js"></script>
 	<script src="app.js"></script>
 	<script src="updates.js"></script>
+<script src="online-host.js"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
 
 <p align="center"><strong>Play your PS4 or PS5 on your PC, through a web browser.</strong><br>Your console runs the game. Your PC shows the picture and sends your controls back.</p>
 
-<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.3"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
+<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.10.4"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
 
 <p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml"><img src="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml/badge.svg" alt="Browser checks on Windows and Linux"></a></p>
 
@@ -137,3 +137,8 @@ Use the browser edition for now. The optional Electron 45.0.0 build is blocked b
 The browser interface uses Chiaki’s C/WebAssembly streaming core, a Rust network relay and a Node server. This community fork builds on [CSystem77/Chiaki-NG-Web](https://github.com/CSystem77/Chiaki-NG-Web), [chiaki-ng](https://github.com/streetpea/chiaki-ng), and the original Chiaki by **~thestr4ng3r**. Upstream contributors retain their credit and licenses.
 
 Released under the included [license](COPYING). This project is not affiliated with or endorsed by Sony Interactive Entertainment.
+
+
+### Play with friends online
+
+The new **Online play** button creates browser invitations with host approval, watch/play permissions, expiry and revocation. It requires a separate self-hosted invitation/TURN server; your local console app stays private. Start with the [beginner online-play guide](docs/ONLINE_PLAY.md). A small server ZIP is included in the browser release.
