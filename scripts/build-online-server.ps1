@@ -1,4 +1,4 @@
-param([string]$Version = '1.13.0')
+param([string]$Version = '1.14.0')
 $ErrorActionPreference = 'Stop'
 $projectDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Push-Location $projectDir
@@ -6,7 +6,7 @@ try {
     if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid version.' }
     $stage = Join-Path $projectDir ('.tools/online-bundle-' + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
-    $files = @('.dockerignore', 'COPYING', 'LICENSE', 'docs/ONLINE_PLAY.md', 'wasm/www/online-protocol.js', 'wasm/www/pc-controls.js')
+    $files = @('.dockerignore', 'COPYING', 'LICENSE', 'docs/ONLINE_PLAY.md', 'docs/PARSEC_GUIDE.md', 'wasm/www/online-protocol.js', 'wasm/www/pc-controls.js')
     $files += @(git ls-files wasm/online)
     foreach ($file in $files) {
         if ($file -match '(^|/)(node_modules|secrets)(/|$)|(^|/)\.env($|\.)') { throw 'Private/dependency path in online bundle.' }

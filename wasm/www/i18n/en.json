@@ -224,7 +224,7 @@
 	"keys.trackpadHint": "Trackpad mode keeps macOS pointer acceleration, multiplies motion by the boost and makes small swipes count for more. Press F8 twice after toggling it.",
 	"keys.mouseHint": "Click the video to lock the cursor in keyboard/mouse mode. The virtual pad keeps the cursor free. F8 toggles lock by default.",
 	"keys.hint": "Click a cell, then press a keyboard key or a mouse button.",
-	"controllers.hint": "The first PlayStation / standard Gamepad API controller is used (DualShock / DualSense). After plugging it in, press any button — no page reload needed.",
+	"controllers.hint": "A PlayStation / standard Gamepad API controller is selected automatically. Press any button after connecting it. Choose a specific controller under Play with friends when needed.",
 	"controllers.status": "Status:",
 	"controllers.none": "No gamepad",
 	"controllers.connected": "Gamepad connected",

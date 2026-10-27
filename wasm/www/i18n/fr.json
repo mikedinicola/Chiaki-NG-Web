@@ -224,7 +224,7 @@
 	"keys.trackpadHint": "Le mode trackpad conserve l’accélération du pointeur macOS, multiplie le mouvement et amplifie les petits gestes. Appuyez deux fois sur F8 après l’avoir activé.",
 	"keys.mouseHint": "Cliquez la vidéo pour bloquer le curseur en mode clavier/souris. La manette virtuelle laisse le curseur libre. F8 bascule le verrouillage par défaut.",
 	"keys.hint": "Cliquez une case, puis appuyez sur une touche ou un bouton de souris.",
-	"controllers.hint": "La première manette PlayStation / standard vue par l’API Gamepad est utilisée (DualShock / DualSense). Après l’avoir branchée, appuyez sur un bouton — pas besoin de recharger la page.",
+	"controllers.hint": "Une manette PlayStation / standard est sélectionnée automatiquement. Appuyez sur un bouton après connexion. Choisissez une manette précise dans Play with friends si nécessaire.",
 	"controllers.status": "État :",
 	"controllers.none": "Aucune manette",
 	"controllers.connected": "Manette connectée",

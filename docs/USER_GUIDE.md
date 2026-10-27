@@ -2,6 +2,8 @@
 
 This guide is also included offline in the app. Open it with the **?** button.
 
+For friends over the internet, use **Play with friends → Parsec** and follow the [easy Parsec guide](PARSEC_GUIDE.md).
+
 
 <span class="eyebrow">YOUR FIRST STREAM</span><h1>Your PlayStation.<br>Your browser.</h1>
 <p class="muted">Your console runs the game. This app brings its picture, sound and controls to your PC. Start with both devices on the same home network.</p>

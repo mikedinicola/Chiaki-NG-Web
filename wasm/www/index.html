@@ -93,7 +93,7 @@
 				<button class="tb-btn tb-close" id="btn-stop" type="button" data-i18n-title="stream.stop" title="Stop">×</button>
 				<span class="tb-brand" data-i18n="brand">Chiaki-NG Web Edition</span>
 				<div class="tb-spacer"></div>
-				<button class="tb-btn" id="btn-controls" type="button" aria-controls="controls-sidebar" aria-expanded="false" data-i18n-title="controls.toggle" title="Controls (`)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M6 9h2m3 0h2m3 0h2M6 12h2m3 0h2m3 0h2M7 15h10"/></svg></button><button class="tb-btn" id="btn-online-open" type="button" title="Host online play">Online play</button><button class="tb-btn hidden" id="btn-online-stop" type="button" title="Immediately disconnect all online guests">Stop online</button>
+				<button class="tb-btn" id="btn-controls" type="button" aria-controls="controls-sidebar" aria-expanded="false" data-i18n-title="controls.toggle" title="Controls (`)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M6 9h2m3 0h2m3 0h2M6 12h2m3 0h2m3 0h2M7 15h10"/></svg></button><button class="tb-btn" id="btn-online-open" type="button" title="Play with friends using Parsec">Play with friends</button><button class="tb-btn hidden" id="btn-online-stop" type="button" title="Immediately disconnect all online guests">Stop online</button>
 				<button class="tb-btn tb-icon" id="btn-stream-share" type="button" data-i18n-title="share.menu" title="Share">
 					<img src="icons/share-24px.svg" alt="">
 				</button>
@@ -142,7 +142,16 @@
 			</nav>
 			<div class="settings-body">
 				<div class="tab-page" data-page="general">
-<section id="online-panel" class="update-panel" aria-labelledby="online-heading">
+<section id="online-panel" class="update-panel" aria-labelledby="parsec-heading">
+<h3 id="parsec-heading">Play with friends</h3>
+<p class="hint">Use Parsec to share your console stream. No invitation server, domain or host key.</p>
+<div class="parsec-actions"><a class="parsec-download" href="https://parsec.app/downloads" target="_blank" rel="noopener noreferrer">Get Parsec</a><button id="parsec-open" type="button">Open Parsec</button><button id="parsec-recheck" type="button">Check installation</button></div>
+<p id="parsec-status" class="hint" role="status" aria-live="polite">Checking for Parsec…</p>
+<ol class="parsec-guide"><li><strong>Connect your console here.</strong><p id="parsec-stream-status">Choose your PS5 or PS4 on the home screen and start the stream.</p><button id="parsec-console" type="button">Choose console</button></li><li><strong>Open Parsec and sign in.</strong><p>On your Windows PC, enable Hosting in Parsec Settings → Host. Keep its virtual gamepad driver installed.</p></li><li><strong>Send your friend the Parsec link.</strong><p>In Parsec, open Computers and click Share on this PC. Copy that link and send it privately. Your friend signs in to Parsec and joins; you approve their request there.</p></li><li><strong>Return to the game.</strong><p>Give your friend Gamepad permission in Parsec. Have them press a controller button, then click the game in this browser.</p><button id="parsec-resume" type="button" disabled>Return to game</button></li></ol>
+<div class="parsec-controller"><label for="parsec-controller">Controller to use</label><select id="parsec-controller"><option value="auto">Automatic</option></select><p id="parsec-controller-status" class="hint" role="status">No controller detected yet. Ask your friend to press a button after joining.</p></div>
+<p class="parsec-stop"><strong>Stop sharing:</strong> in Parsec, disconnect your friend or press <kbd>Ctrl + F3</kbd> on the host PC. Closing Chiaki alone does not end a Parsec desktop session.</p>
+<details class="online-details"><summary>Privacy and troubleshooting</summary><p class="hint">Parsec shares your PC display, including other visible windows and notifications. Use a dedicated browser window, keep private content off-screen, and leave keyboard/mouse permissions off unless needed. Parsec's Approved Apps can limit access to your browser application; it does not isolate this browser tab.</p><p class="hint">If the wrong controller moves the game, select your friend's virtual controller above. If no virtual controller appears, check Parsec's virtual gamepad driver and Gamepad permission, then press a button and refocus this page. Parsec hosting with guest controllers is recommended on Windows; macOS hosting has controller limitations.</p><p class="hint">Your friend can use <a href="https://web.parsec.app/" target="_blank" rel="noopener noreferrer">Parsec in Chrome</a>, but its installed app is recommended for performance. This app cannot read Parsec's account, guests or connection status; approval and disconnection happen in Parsec.</p><a href="https://support.parsec.app/hc/en-us/articles/32381747079572-Hosting-and-Permissions" target="_blank" rel="noopener noreferrer">Official Parsec hosting help</a> · <a href="https://support.parsec.app/hc/en-us/articles/32381705301908-Setup-Gamepad" target="_blank" rel="noopener noreferrer">Controller help</a></details>
+<details class="online-details" id="online-advanced"><summary>Advanced: self-hosted browser invitations</summary><section aria-labelledby="online-heading">
 <h3 id="online-heading">Play with a friend</h3>
 <p id="online-status" role="status" aria-live="polite">Connect your console, then create a private link for your friend.</p>
 <ol class="online-steps" aria-label="Hosting progress"><li id="online-step-stream">1. Connect your console</li><li id="online-step-server">2. Set up sharing once</li><li id="online-step-invite">3. Invite your friend</li></ol>
@@ -161,7 +170,7 @@
 <div class="update-actions"><button id="online-start" class="primary" type="button" disabled>Create invite</button><button id="online-stop" type="button" disabled>Stop sharing</button></div>
 <div id="online-invite-ready" hidden><label>Send this link to your friend <input id="online-invite" type="text" readonly autocomplete="off"></label><button id="online-copy" class="primary" type="button" disabled>Copy invite link</button><p class="hint">Your friend opens the link, enters a name and asks to join. Approve them below. They need no installation or PSN login.</p></div>
 <div id="online-people" hidden><h4>Friends</h4><p id="online-waiting" class="hint">Waiting for your friend to open the link…</p><ul id="online-guests"></ul></div>
-<details class="online-details"><summary>Privacy and controls</summary><p class="hint">Every friend needs your approval. Watch only shares the picture and sound; Let play shares your controller, not a separate player. One friend can control at a time. Stop sharing revokes the invite and disconnects everyone. Keep this tab visible. Sharing re-encodes video and uses upload bandwidth. Approved peers may learn your public IP; invite people you trust.</p></details></section>
+<details class="online-details"><summary>Privacy and controls</summary><p class="hint">Every friend needs your approval. Watch only shares the picture and sound; Let play shares your controller, not a separate player. One friend can control at a time. Stop sharing revokes the invite and disconnects everyone. Keep this tab visible. Sharing re-encodes video and uses upload bandwidth. Approved peers may learn your public IP; invite people you trust.</p></details></section></details></section>
 
 					<section id="update-panel" class="update-panel" aria-labelledby="update-heading">
 						<h3 id="update-heading">App updates</h3>
@@ -740,12 +749,14 @@
 	<script src="console-setup.js"></script>
 	<script src="username-lookup.js"></script>
 	<script src="pc-controls.js"></script>
+<script src="controller-routing.js"></script>
 	<script src="video-renderer.js"></script>
 	<script src="video-pipeline.js"></script>
 <script src="online-protocol.js"></script>
 	<script src="app.js"></script>
 	<script src="updates.js"></script>
 <script src="online-host.js"></script>
+<script src="parsec-host.js"></script>
 	<script src="interface.js"></script>
 </body>
 </html>

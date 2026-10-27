@@ -259,6 +259,10 @@ test("full web server preserves authentication and browser isolation with Rust e
 	assert.equal((await fetch(base + "/api/state")).status, 401);
 	assert.equal((await fetch(base + "/rust-relay.mjs")).status, 403);
 
+	assert.equal((await fetch(base + "/api/integrations/parsec")).status, 401);
+	assert.equal((await fetch(base + "/api/integrations/parsec/open", {method:"POST",headers:{origin:"https://unrelated.invalid","x-chiaki-update":"1"}})).status,403);
+	assert.equal((await fetch(base + "/api/integrations/parsec/open", {method:"POST",headers:{origin:base}})).status,403);
+
 	const upgrade = (cookie, origin = base) => new Promise((resolve, reject) => {
 		const req = http.request(base + "/posix-net", { headers: {
 			Connection: "Upgrade", Upgrade: "websocket", "Sec-WebSocket-Version": "13",
@@ -277,6 +281,11 @@ test("full web server preserves authentication and browser isolation with Rust e
 	});
 	assert.equal(registered.status, 200, await registered.text());
 	const cookie = registered.headers.get("set-cookie").split(";")[0];
+	const integration = await fetch(base + "/api/integrations/parsec", {headers:{Cookie:cookie}});
+	assert.equal(integration.status,200); const info = await integration.json();
+	assert.deepEqual(Object.keys(info).sort(),["installed","supported"]);
+	assert.equal((await fetch(base + "/api/integrations/parsec/open",{headers:{Cookie:cookie}})).status,405);
+
 	await assert.rejects(upgrade(cookie, "http://unrelated.invalid"), /socket hang up/);
 	const authorized = await upgrade(cookie);
 	assert.equal(authorized.status, 101);

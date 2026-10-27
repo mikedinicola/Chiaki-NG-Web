@@ -4,7 +4,7 @@
 
 <p align="center"><strong>Play your PS4 or PS5 on your PC, through a web browser.</strong><br>Your console runs the game. Your PC shows the picture and sends your controls back.</p>
 
-<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.13.0"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
+<p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/releases/tag/browser-v1.14.0"><strong>Download for Windows</strong></a> · <a href="docs/GETTING_STARTED.md">Get started</a> · <a href="#take-a-look">Screenshots</a> · <a href="docs/USER_GUIDE.md">Controls &amp; settings</a></p>
 
 <p align="center"><a href="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml"><img src="https://github.com/SKIZZOO/Chiaki-NG-Web/actions/workflows/browser-relay.yml/badge.svg" alt="Browser checks on Windows and Linux"></a></p>
 
@@ -141,4 +141,8 @@ Released under the included [license](COPYING). This project is not affiliated w
 
 ### Play with friends online
 
-The new **Online play** button creates browser invitations with host approval, watch/play permissions, expiry and revocation. It requires a separate self-hosted invitation/TURN server; your local console app stays private. Start with the [beginner online-play guide](docs/ONLINE_PLAY.md). A small server ZIP is included in the browser release.
+Open **Play with friends** for the Parsec setup: install/sign in, share this PC in Parsec, approve your friend, then return to the game. No server or domain is needed for this option. The app can open a standard Windows Parsec installation and lets you choose the controller used by the stream. [Easy Parsec guide →](docs/PARSEC_GUIDE.md)
+
+Self-hosted browser invitations remain under **Advanced**, with their own [server setup guide](docs/ONLINE_PLAY.md).
+
+<p align="center"><img src="docs/images/parsec-setup.png" alt="Parsec-first Play with friends setup with download and launch buttons" width="1000"></p>

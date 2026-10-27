@@ -9,7 +9,7 @@
 		consoles: ["Consoles", "M5 4h14v16H5zM8 17h8M8 7h8"],
 		keys: ["Keyboard & mouse", "M3 6h18v12H3zM6 9h1m3 0h1m3 0h1m3 0h.01M6 12h1m3 0h1m3 0h1m3 0h.01M7 15h10"],
 		controllers: ["Controllers", "M7 7h10c4 0 5 12 2 12l-4-4H9l-4 4C2 19 3 7 7 7zM7 10v4m-2-2h4m7-1h.01m2 2h.01"],
-		online: ["Online play", "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M2 21v-2a7 7 0 0 1 14 0v2m1-16a4 4 0 0 1 0 8m2 3a5 5 0 0 1 3 5"],
+		online: ["Play with friends", "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M2 21v-2a7 7 0 0 1 14 0v2m1-16a4 4 0 0 1 0 8m2 3a5 5 0 0 1 3 5"],
 		updates: ["App updates", "M20 8a9 9 0 1 0 1 8M20 3v5h-5M12 8v5l3 2"],
 		config: ["Connection", "M5 8h14M8 4v8m-3 5h14m-3-4v8"]
 	};

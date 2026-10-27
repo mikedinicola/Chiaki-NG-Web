@@ -17,6 +17,9 @@ import { createShareHub } from "./share.mjs";
 import { startRustRelay } from "./rust-relay.mjs";
 import { createUpdater, localUpdateRequest } from "./updater.mjs";
 
+import { createParsecLauncher } from "./parsec.mjs";
+const parsecLauncher = createParsecLauncher();
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cfg = loadEnv();
 let installedVersion = "development";
@@ -1143,6 +1146,16 @@ async function handleApi(req, res, reqUrl) {
 	const route = req.method + " " + reqUrl.pathname;
 	if (reqUrl.pathname === "/api/share" && ((!cfg.authEnabled && !localUpdateRequest({ method: "GET", socket: req.socket, headers: req.headers })) || (req.method !== "GET" && (!req.headers.origin || !sameOrigin(req))))) {
 		json(res, 403, { error: "Local same-origin sharing management required." }); return true;
+	}
+	if (reqUrl.pathname === "/api/integrations/parsec" || reqUrl.pathname === "/api/integrations/parsec/open") {
+		if (!localUpdateRequest(req)) { json(res, 403, { error: "Parsec controls require a same-origin local browser request." }); return true; }
+		if (!requireUser(req, res)) return true;
+		try {
+			if (route === "GET /api/integrations/parsec") json(res, 200, await parsecLauncher.status());
+			else if (route === "POST /api/integrations/parsec/open") json(res, 200, await parsecLauncher.open());
+			else json(res, 405, { error: "method_not_allowed" });
+		} catch (e) { json(res, 400, { error: e.message }); }
+		return true;
 	}
 	if (reqUrl.pathname.startsWith("/api/update/")) {
 		if (!localUpdateRequest(req)) { json(res, 403, { error: "Updates require a same-origin local browser request." }); return true; }

@@ -1,4 +1,7 @@
-# Invite a friend over the internet
+# Advanced: self-hosted browser invitations
+
+For easier sharing without running a server, use [Parsec](PARSEC_GUIDE.md) from
+**Play with friends**. This guide covers the optional advanced browser-invite service.
 
 Your PlayStation runs the game. Your Windows PC connects to it normally and shares
 only the game picture, sound and approved controller input. Your friend opens a
@@ -19,7 +22,7 @@ not an anonymous public gaming service.
   normal DNS record; HTTP-only CDN proxies cannot carry the TURN UDP traffic.
 - Docker Engine and the Docker Compose plugin installed on the VPS using
   [Docker's official Linux installation instructions](https://docs.docker.com/engine/install/).
-- Chiaki-NG Web **1.13.0 or newer** on the gaming PC. Keep the PS5 and PC on
+- Chiaki-NG Web **1.14.0 or newer** on the gaming PC. Keep the PS5 and PC on
   your usual home network. No ports need forwarding on the home router.
 
 The VPS is separate from your gaming PC. Do not publish port 8090, the local
@@ -34,7 +37,7 @@ service included with the app. This server is separate from your gaming PC.
 1. Point your domain's DNS A record to the VPS public IPv4 and install Docker
    Engine with its Compose plugin. Keep the record DNS-only if your provider
    offers an HTTP CDN proxy.
-2. Download the **Chiaki-Online-Server-1.13.0.zip** release asset and extract it
+2. Download the **Chiaki-Online-Server-1.14.0.zip** release asset and extract it
    on the VPS. Inside the extracted folder run:
 
    ```sh
@@ -59,7 +62,7 @@ service included with the app. This server is separate from your gaming PC.
    If setup reports that HTTPS isn't ready, fix DNS/firewall settings and rerun
    `sudo bash start.sh`. Do not publish internal port 3000 or the local gaming app.
 4. Copy the **private host setup code** printed after the service is ready. On
-   the gaming PC open **Settings → Online play**, paste it and choose **Use setup
+   the gaming PC open **Settings → Play with friends → Advanced: self-hosted browser invitations**, paste it and choose **Use setup
    code**. This loads the settings; creating an invite makes the connection.
 
 Already have the server configured? Update its files, then run
@@ -71,7 +74,7 @@ Keep it private. Do not put it in a public screenshot or send it to a friend.
 ## Host a game
 
 1. Start your console stream as usual.
-2. Open **Online play** from the stream toolbar. Its checklist shows what is ready.
+2. Open **Play with friends** from the stream toolbar, then expand **Advanced: self-hosted browser invitations**. Its checklist shows what is ready.
 3. Press **Create invite**, then **Copy invite link**, and send that link privately
    to your friend. The default is 720p60 with a 30-minute expiry. Open **Invite
    options** only if you want to change picture quality or expiry.

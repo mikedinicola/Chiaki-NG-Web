@@ -2547,6 +2547,7 @@ function shareConnectHost() {
 
 function shareOnStreaming(on) {
 	globalThis.ChiakiOnline?.streamState(on);
+	globalThis.ChiakiParsec?.streamState(on);
 	updateShareBanners();
 	if (!share.active || share.isGuest) return;
 	shareBroadcastState();
@@ -3860,26 +3861,16 @@ function listGamepads() {
 	return out;
 }
 
-function scorePad(gp) {
-	const id = String(gp.id || "").toLowerCase();
-	if (/dualshock|dualsense|wireless controller|sony|playstation|ps[45]|ds4|ds5/.test(id))
-		return 4;
-	if (gp.mapping === "standard") return 3;
-	if (/xinput|xbox/.test(id)) return 2;
-	return 1;
-}
-
 function pickGamepad() {
 	const pads = listGamepads();
 	if (!pads.length) {
 		activePadIndex = -1;
 		return null;
 	}
-	const kept = pads.find((p) => p.index === activePadIndex);
-	if (kept) return kept;
-	pads.sort((a, b) => scorePad(b) - scorePad(a) || a.index - b.index);
-	activePadIndex = pads[0].index;
-	return pads[0];
+	const selected = globalThis.ChiakiParsec?.controller();
+	const chosen = ChiakiControllerRouting.pick(pads, selected, activePadIndex);
+	activePadIndex = chosen ? chosen.index : -1;
+	return chosen;
 }
 
 function refreshPadStatus() {

@@ -21,7 +21,7 @@ use a sidebar on desktop and a horizontally scrollable category strip on phones.
 | Consoles | Saved console visibility and account identifiers |
 | Keyboard & mouse | PC preset, bindings, mouse response and shortcuts |
 | Controllers | Connected-controller status, stick dead zone, virtual-pad layout and skin |
-| Online play | Self-hosted invitation server, guest approvals and revocation |
+| Play with friends | Parsec setup, controller selection and advanced self-hosting |
 | App updates | Automatic-check preference and verified Windows updates |
 | Connection | Advanced proxy and default PSN-account settings |
 
@@ -95,3 +95,14 @@ sharing revokes the invitation and disconnects everyone.
 For first-time self-hosting, the [online setup guide](ONLINE_PLAY.md#first-time-setup)
 uses `sudo bash start.sh` to create/start the service and print a setup code after
 HTTPS is ready. A public Linux server and domain are still required once.
+
+## Parsec is the easy sharing option
+
+Open **Play with friends** for the host checklist and Get/Open Parsec buttons.
+The Windows local helper opens only Parsec's fixed vendor executable, after an
+explicit button click. It cannot sign in, generate Parsec links, approve guests,
+or disconnect Parsec sessions. Use Parsec for those actions. The controller
+selector can explicitly route the friend's virtual pad instead of a local pad;
+a missing selected device produces no controller input rather than selecting
+another pad. See the [Parsec guide](PARSEC_GUIDE.md). The previous browser-invite
+feature is under **Advanced: self-hosted browser invitations**.
