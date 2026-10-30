@@ -17,8 +17,14 @@ if [ -x "$PROTOC_BIN" ] && "$PROTOC_BIN" --version 2>/dev/null | grep -q "3.9.1"
 	NEED=0
 fi
 if [ "$NEED" -eq 1 ]; then
-	if [ "$(uname -m)" = "aarch64" ]; then ARCH="aarch_64"; else ARCH="x86_64"; fi
-	URL="https://github.com/protocolbuffers/protobuf/releases/download/v${VER}/protoc-${VER}-linux-${ARCH}.zip"
+	if [ "$(uname -s)" = "Darwin" ]; then
+		# protoc 3.9.1 only ships an x86_64 macOS build; Apple Silicon runs it through Rosetta 2.
+		OS="osx"; ARCH="x86_64"
+	else
+		OS="linux"
+		case "$(uname -m)" in aarch64|arm64) ARCH="aarch_64" ;; *) ARCH="x86_64" ;; esac
+	fi
+	URL="https://github.com/protocolbuffers/protobuf/releases/download/v${VER}/protoc-${VER}-${OS}-${ARCH}.zip"
 	DEST="$ROOT/tools/protoc"
 	ZIP="$(mktemp).zip"
 	echo "Telechargement de protoc ${VER} vers tools/protoc (ignore le protoc systeme) ..."

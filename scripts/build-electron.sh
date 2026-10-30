@@ -56,6 +56,15 @@ PACK_NAME="pack-$STAMP"
 PACK_REL="../build/$PACK_NAME"
 PACK_ABS="$OUT_DIR/$PACK_NAME"
 
+if [[ "$TARGET" = "mac" && "$(uname -s)" = Darwin* ]]; then
+	# codesign rejects extended attributes ("resource fork, Finder information, or similar
+	# detritus"), which iCloud-synced folders such as Desktop and Documents add. Package in a
+	# local temporary folder and copy only the finished .dmg/.zip back to wasm/build.
+	xattr -cr "$STAGE" 2>/dev/null || true
+	PACK_ABS="$(mktemp -d "${TMPDIR:-/tmp}/chiaki-electron.XXXXXX")/$PACK_NAME"
+	PACK_REL="$PACK_ABS"
+fi
+
 echo "Packaging Electron ($TARGET) -> $PACK_ABS"
 npx --yes electron-builder "$EB_OS" --publish never --config.directories.output="$PACK_REL"
 find "$PACK_ABS" -maxdepth 1 -type f -exec cp -f {} "$OUT_DIR/" \;

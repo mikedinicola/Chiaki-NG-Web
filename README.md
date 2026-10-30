@@ -146,6 +146,16 @@ node wasm/proxy/server.mjs
 
 Output: `build-wasm/wasm/` (`chiaki.wasm`, `chiaki.js`, copied UI and proxy).
 
+**macOS** (Apple Silicon or Intel, with [Homebrew](https://brew.sh)):
+
+```bash
+git clone --recurse-submodules https://github.com/CSystem77/Chiaki-NG-Web.git
+cd Chiaki-NG-Web
+./mac-setup.sh
+```
+
+`mac-setup.sh` installs Emscripten, CMake, Ninja and Node with Homebrew and builds the WASM core. Then double-click **Start Chiaki-NG Web.command**: it starts the server on port 8090 and opens Chrome once it is listening. Keep its Terminal window open while playing. On Apple Silicon, the pinned `protoc` 3.9.1 is an x86_64 binary and needs Rosetta 2 (`softwareupdate --install-rosetta --agree-to-license`).
+
 Full install notes: [`wasm/Build_WASM.md`](wasm/Build_WASM.md) · [`wasm/Build_WASM_FR.md`](wasm/Build_WASM_FR.md)
 
 ---
@@ -178,7 +188,7 @@ chmod +x scripts/build-electron.sh scripts/run-electron.sh
 ./scripts/build-electron.sh
 ```
 
-**macOS:** `./scripts/build-electron.sh mac`
+**macOS:** `./scripts/build-electron.sh mac` (after `./mac-setup.sh`). The `.dmg` and `.zip` land in `wasm/build/`. Packaging runs in a temporary folder because `codesign` rejects the extended attributes that iCloud-synced folders such as Desktop add. An installed Apple Development certificate is used automatically; builds for other people need a Developer ID certificate and notarization.
 
 | Script | Role |
 |---|---|
